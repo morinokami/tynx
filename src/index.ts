@@ -1,3 +1,7 @@
-import { hello } from './hello'
+import axios from 'axios'
+import meow from 'meow'
 
-console.log(hello('world'))
+const cli = meow()
+
+const url = cli.input[0]
+axios.get(url).then((response) => console.log(response.data))
