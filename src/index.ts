@@ -12,8 +12,13 @@ if (!validUrl.isWebUri(url)) {
 }
 
 axios.get(url).then((response) => {
+  const contentType = response.headers['content-type']
+  if (!contentType?.includes('text/html')) {
+    console.log('response not html')
+    process.exit(1)
+  }
   const html = response.data
-  // validate html here
+  // eval js here
   const turndownService = new TurndownService()
   const md = turndownService.turndown(html)
   console.log(md)
