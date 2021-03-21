@@ -1,3 +1,5 @@
 function hello(name: string) {
-  console.log(`Hello, ${name}`);
+  console.log(`Hello, ${name}`)
 }
+
+hello('John')
