@@ -1,5 +1,3 @@
-function hello(name: string) {
-  console.log(`Hello, ${name}`)
-}
+import { hello } from './hello'
 
-hello('John')
+console.log(hello('world'))
