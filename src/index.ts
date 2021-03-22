@@ -1,5 +1,5 @@
-import axios from 'axios'
 import meow from 'meow'
+import puppeteer from 'puppeteer'
 import TurndownService from 'turndown'
 import validUrl from 'valid-url'
 
@@ -11,15 +11,15 @@ if (!validUrl.isWebUri(url)) {
   process.exit(1)
 }
 
-axios.get(url).then((response) => {
-  const contentType = response.headers['content-type']
-  if (!contentType?.includes('text/html')) {
-    console.log('response not html')
-    process.exit(1)
-  }
-  const html = response.data
-  // eval js here
+;(async () => {
+  const browser = await puppeteer.launch()
+  const page = await browser.newPage()
+  await page.goto(url)
+  const htmlBody = await page.evaluate(() => document.body.innerHTML)
+
   const turndownService = new TurndownService()
-  const md = turndownService.turndown(html)
+  const md = turndownService.turndown(htmlBody)
   console.log(md)
-})
+
+  await browser.close()
+})()
