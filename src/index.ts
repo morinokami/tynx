@@ -1,3 +1,4 @@
+import blessed from 'blessed'
 import meow from 'meow'
 import puppeteer from 'puppeteer'
 import TurndownService from 'turndown'
@@ -19,7 +20,36 @@ if (!validUrl.isWebUri(url)) {
 
   const turndownService = new TurndownService()
   const md = turndownService.turndown(htmlBody)
-  console.log(md)
 
-  await browser.close()
+  const screen = blessed.screen({
+    smartCSR: true,
+  })
+  screen.title = await page.title()
+  const box = blessed.box({
+    top: 'center',
+    left: 'center',
+    width: '100%',
+    height: '100%',
+    content: md,
+    tags: true,
+    border: {
+      type: 'line',
+    },
+    style: {
+      fg: 'white',
+      bg: 'magenta',
+      border: {
+        fg: '#f0f0f0',
+      },
+      hover: {
+        bg: 'green',
+      },
+    },
+  })
+  screen.append(box)
+  screen.key(['escape', 'q', 'C-c'], async () => {
+    await browser.close()
+    return process.exit(0)
+  })
+  screen.render()
 })()

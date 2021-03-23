@@ -576,6 +576,13 @@
   dependencies:
     "@babel/types" "^7.3.0"
 
+"@types/blessed@^0.1.17":
+  version "0.1.17"
+  resolved "https://registry.yarnpkg.com/@types/blessed/-/blessed-0.1.17.tgz#15b3280a6b8729f3c270a762ccafc8514ac5120d"
+  integrity sha512-BKvUtnrXksNdK0fOYV/9HJGkjCcAvOGMSCJsiHaBFyBeyqHwy2OHK32r5XNI+q0eXuAuGqtPOnDetHnbZoYqag==
+  dependencies:
+    "@types/node" "*"
+
 "@types/graceful-fs@^4.1.2":
   version "4.1.5"
   resolved "https://registry.yarnpkg.com/@types/graceful-fs/-/graceful-fs-4.1.5.tgz#21ffba0d98da4350db64891f92a9e5db3cdb4e15"
@@ -1024,6 +1031,11 @@ bl@^4.0.3:
     buffer "^5.5.0"
     inherits "^2.0.4"
     readable-stream "^3.4.0"
+
+blessed@^0.1.81:
+  version "0.1.81"
+  resolved "https://registry.yarnpkg.com/blessed/-/blessed-0.1.81.tgz#f962d687ec2c369570ae71af843256e6d0ca1129"
+  integrity sha1-+WLWh+wsNpVwrnGvhDJW5tDKESk=
 
 brace-expansion@^1.1.7:
   version "1.1.11"
