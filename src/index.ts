@@ -1,21 +1,22 @@
 import blessed from 'blessed'
-import meow from 'meow'
 import puppeteer from 'puppeteer'
 import TurndownService from 'turndown'
-import validUrl from 'valid-url'
 
-const cli = meow()
+import CLI from './cli'
 
-const url = cli.input[0]
-if (!validUrl.isWebUri(url)) {
-  console.log(`Not a valid url: ${url}`)
-  process.exit(1)
-}
+const main = async (): Promise<void> => {
+  const cli = new CLI()
 
-;(async () => {
+  try {
+    cli.validateUrl()
+  } catch (err) {
+    console.error(err.message)
+    return
+  }
+
   const browser = await puppeteer.launch()
   const page = await browser.newPage()
-  await page.goto(url)
+  await page.goto(cli.url)
   const htmlBody = await page.content()
 
   const turndownService = new TurndownService()
@@ -75,4 +76,6 @@ if (!validUrl.isWebUri(url)) {
     return process.exit(0)
   })
   screen.render()
-})()
+}
+
+main()
