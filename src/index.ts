@@ -1,8 +1,8 @@
 import blessed from 'blessed'
-import TurndownService from 'turndown'
 
 import CLI from './cli'
 import Renderer from './renderer'
+import { htmlToMarkdown } from './lib'
 
 const main = async (): Promise<void> => {
   const cli = new CLI()
@@ -16,8 +16,7 @@ const main = async (): Promise<void> => {
   }
 
   const htmlBody = await renderer.evaluate(cli.url)
-  const turndownService = new TurndownService()
-  const md = turndownService.turndown(htmlBody)
+  const md = htmlToMarkdown(htmlBody)
 
   const screen = blessed.screen({
     smartCSR: true,
