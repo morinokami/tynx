@@ -1,11 +1,12 @@
 import blessed from 'blessed'
-import puppeteer from 'puppeteer'
 import TurndownService from 'turndown'
 
 import CLI from './cli'
+import Renderer from './renderer'
 
 const main = async (): Promise<void> => {
   const cli = new CLI()
+  const renderer = await Renderer.init()
 
   try {
     cli.validateUrl()
@@ -14,18 +15,14 @@ const main = async (): Promise<void> => {
     return
   }
 
-  const browser = await puppeteer.launch()
-  const page = await browser.newPage()
-  await page.goto(cli.url)
-  const htmlBody = await page.content()
-
+  const htmlBody = await renderer.evaluate(cli.url)
   const turndownService = new TurndownService()
   const md = turndownService.turndown(htmlBody)
 
   const screen = blessed.screen({
     smartCSR: true,
   })
-  screen.title = await page.title()
+  screen.title = renderer.title
   const box = blessed.box({
     top: 'center',
     left: 'center',
@@ -72,7 +69,7 @@ const main = async (): Promise<void> => {
     screen.render()
   })
   screen.key(['escape', 'q', 'C-c'], async () => {
-    await browser.close()
+    await renderer.close()
     return process.exit(0)
   })
   screen.render()
