@@ -61,34 +61,51 @@ class Screen {
   private bindListeners(): void {
     this.box.key(['h', 'j', 'k', 'l'], (ch: string) => {
       this.cursor.detach()
-      if (ch === 'j' || ch === 'k') {
-        this.top += ch === 'j' ? 1 : -1
-        this.top = this.top < 0 ? 0 : this.top
-        this.top =
-          this.top > (this.box.height as number) - 3
-            ? (this.box.height as number) - 3
-            : this.top
-      } else if (ch === 'h' || ch === 'l') {
-        this.left += ch === 'l' ? 1 : -1
-        this.left = this.left < 0 ? 0 : this.left
-        this.left =
-          this.left > (this.box.width as number) - 3
-            ? (this.box.width as number) - 3
-            : this.left
-      }
-      this.cursor = blessed.box(
-        Object.assign({}, cursorOptions, {
-          parent: this.box,
-          top: this.top,
-          left: this.left,
-        }),
-      )
+      this.updateCoordinate(ch)
+      this.renderCursor()
       this.screen.render()
     })
 
     this.screen.key(['escape', 'q', 'C-c'], async () => {
       await this.exit()
     })
+  }
+
+  private updateCoordinate(ch: string): void {
+    if (ch === 'j' || ch === 'k') {
+      this.top = this.nextCursorPosition(
+        this.top,
+        ch === 'j',
+        this.box.height as number,
+      )
+    } else if (ch === 'h' || ch === 'l') {
+      this.left = this.nextCursorPosition(
+        this.left,
+        ch === 'l',
+        this.box.width as number,
+      )
+    }
+  }
+
+  private nextCursorPosition(
+    current: number,
+    forward: boolean,
+    maxLength: number,
+  ): number {
+    let res = current + (forward ? 1 : -1)
+    res = res < 0 ? 0 : res
+    res = res > maxLength - 3 ? maxLength - 3 : res
+    return res
+  }
+
+  private renderCursor() {
+    this.cursor = blessed.box(
+      Object.assign({}, cursorOptions, {
+        parent: this.box,
+        top: this.top,
+        left: this.left,
+      }),
+    )
   }
 
   run(): void {

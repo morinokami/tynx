@@ -16,10 +16,11 @@ const main = async (): Promise<void> => {
 
   const htmlBody = await renderer.evaluate(cli.url)
   const md = htmlToMarkdown(htmlBody)
-  const screen = new Screen(md, renderer.title, async () => {
+  const cleanUp = async () => {
     await renderer.close()
     return process.exit(0)
-  })
+  }
+  const screen = new Screen(md, renderer.title, cleanUp)
 
   screen.run()
 }
