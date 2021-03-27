@@ -1,5 +1,4 @@
 import puppeteer, { Browser, Page } from 'puppeteer'
-
 class Renderer {
   private browser: Browser
   private page: Page
@@ -26,7 +25,7 @@ class Renderer {
   async evaluate(url: string): Promise<string> {
     await this.page.goto(url)
     this._title = await this.page.title()
-    this.content = await this.page.content()
+    this.content = await this.page.evaluate(() => document.body.innerHTML)
     return this.content
   }
 
