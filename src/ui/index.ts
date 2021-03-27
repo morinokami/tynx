@@ -16,6 +16,8 @@ const boxOptions: blessed.Widgets.BoxOptions = {
       fg: '#f0f0f0',
     },
   },
+  scrollable: true,
+  mouse: true,
 }
 
 const cursorOptions: blessed.Widgets.BoxOptions = {
@@ -31,8 +33,8 @@ class Screen {
   private text: string
   private screen: blessed.Widgets.Screen
   private box: blessed.Widgets.BoxElement
-  private top: number
-  private left: number
+  private cursorTop: number // absolute position
+  private cursorLeft: number
   private cursor: blessed.Widgets.BoxElement
   private exit: () => Promise<void>
 
@@ -44,13 +46,13 @@ class Screen {
     this.screen.title = title
     this.box = blessed.box(Object.assign({}, boxOptions, { content: md }))
     this.screen.append(this.box)
-    this.top = 0
-    this.left = 0
+    this.cursorTop = 0
+    this.cursorLeft = 0
     this.cursor = blessed.box(
       Object.assign({}, cursorOptions, {
         parent: this.box,
-        top: this.top,
-        left: this.left,
+        top: this.cursorTop,
+        left: this.cursorLeft,
       }),
     )
     this.exit = exit
@@ -73,14 +75,14 @@ class Screen {
 
   private updateCoordinate(ch: string): void {
     if (ch === 'j' || ch === 'k') {
-      this.top = this.nextCursorPosition(
-        this.top,
+      this.cursorTop = this.nextCursorPosition(
+        this.cursorTop,
         ch === 'j',
-        this.box.height as number,
+        this.box.getScrollHeight() as number,
       )
     } else if (ch === 'h' || ch === 'l') {
-      this.left = this.nextCursorPosition(
-        this.left,
+      this.cursorLeft = this.nextCursorPosition(
+        this.cursorLeft,
         ch === 'l',
         this.box.width as number,
       )
@@ -102,8 +104,8 @@ class Screen {
     this.cursor = blessed.box(
       Object.assign({}, cursorOptions, {
         parent: this.box,
-        top: this.top,
-        left: this.left,
+        top: this.cursorTop,
+        left: this.cursorLeft,
       }),
     )
   }
