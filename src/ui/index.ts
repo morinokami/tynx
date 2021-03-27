@@ -33,7 +33,8 @@ class Screen {
   private text: string
   private screen: blessed.Widgets.Screen
   private box: blessed.Widgets.BoxElement
-  private cursorTop: number // absolute position
+  private cursorTop: number
+  private cursorATop: number // absolute position
   private cursorLeft: number
   private cursor: blessed.Widgets.BoxElement
   private exit: () => Promise<void>
@@ -47,6 +48,7 @@ class Screen {
     this.box = blessed.box(Object.assign({}, boxOptions, { content: md }))
     this.screen.append(this.box)
     this.cursorTop = 0
+    this.cursorATop = 0
     this.cursorLeft = 0
     this.cursor = blessed.box(
       Object.assign({}, cursorOptions, {
@@ -75,36 +77,53 @@ class Screen {
 
   private updateCoordinate(ch: string): void {
     if (ch === 'j' || ch === 'k') {
-      this.cursorTop = this.nextCursorPosition(
+      const cursor = this.nextCursorPosition(
         this.cursorTop,
         ch === 'j',
+        this.box.height as number,
         this.box.getScrollHeight() as number,
       )
+      this.cursorTop = cursor.position
+      this.cursorATop = cursor.absolutePosition
+      this.box.scrollTo(cursor.absolutePosition)
     } else if (ch === 'h' || ch === 'l') {
-      this.cursorLeft = this.nextCursorPosition(
+      const cursor = this.nextCursorPosition(
         this.cursorLeft,
         ch === 'l',
         this.box.width as number,
       )
+      this.cursorLeft = cursor.position
     }
   }
 
   private nextCursorPosition(
     current: number,
     forward: boolean,
-    maxLength: number,
-  ): number {
-    let res = current + (forward ? 1 : -1)
-    res = res < 0 ? 0 : res
-    res = res > maxLength - 3 ? maxLength - 3 : res
-    return res
+    boxLength: number,
+    absoluteLength?: number,
+  ): { position: number; absolutePosition: number } {
+    let position = current + (forward ? 1 : -1)
+    position = position < 0 ? 0 : position
+    position = position > boxLength - 3 ? boxLength - 3 : position
+
+    let absolutePosition = 0
+    if (absoluteLength) {
+      absolutePosition = this.cursorATop + (forward ? 1 : -1)
+      absolutePosition = absolutePosition < 0 ? 0 : absolutePosition
+      absolutePosition =
+        absolutePosition > absoluteLength - 1
+          ? absoluteLength - 1
+          : absolutePosition
+    }
+
+    return { position, absolutePosition }
   }
 
   private renderCursor() {
     this.cursor = blessed.box(
       Object.assign({}, cursorOptions, {
         parent: this.box,
-        top: this.cursorTop,
+        top: this.cursorATop,
         left: this.cursorLeft,
       }),
     )
