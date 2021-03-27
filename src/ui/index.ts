@@ -9,13 +9,6 @@ const boxOptions: blessed.Widgets.BoxOptions = {
   border: {
     type: 'line',
   },
-  style: {
-    fg: 'white',
-    bg: 'magenta',
-    border: {
-      fg: '#f0f0f0',
-    },
-  },
   scrollable: true,
   mouse: true,
 }
@@ -42,6 +35,7 @@ class Screen {
     this.text = md
     this.screen = blessed.screen({
       smartCSR: true,
+      forceUnicode: true,
       fullUnicode: true,
     })
     this.screen.title = title
