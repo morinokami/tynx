@@ -42,6 +42,7 @@ class Screen {
     this.text = md
     this.screen = blessed.screen({
       smartCSR: true,
+      fullUnicode: true,
     })
     this.screen.title = title
     this.box = blessed.box(Object.assign({}, boxOptions, { content: md }))
