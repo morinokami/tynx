@@ -68,6 +68,15 @@ class Screen {
       this.screen.render()
     })
 
+    this.box.on('click', (mouse) => {
+      this.cursor.detach()
+      const { x, y } = mouse
+      this.cursorTop = this.box.childBase + y - 1
+      this.cursorLeft = x - 1
+      this.renderCursor()
+      this.screen.render()
+    })
+
     this.screen.key(['escape', 'q', 'C-c'], async () => {
       await this.exit()
     })
