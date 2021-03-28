@@ -90,7 +90,7 @@ class Screen {
       const clickedLine = lines[this.cursorTop]
       if (this.cursorLeft <= clickedLine.length) {
         const text = lines.join('')
-        const regex = /\[[\w\s\d]+\]\(((?:\/|https?:\/\/)[\w\d./?=#]+)\)/g // needs improvement!
+        const regex = /\[([^[]+)\]\(([^)]+)\)/gm
         let match = regex.exec(text)
         while (match) {
           const start = match.index
@@ -101,7 +101,7 @@ class Screen {
             this.box.content = ''
             this.screen.title = ''
             this.screen.render()
-            await this.follow(match[1])
+            await this.follow(match[2])
             break
           }
           match = regex.exec(text)
