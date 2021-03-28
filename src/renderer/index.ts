@@ -32,6 +32,10 @@ class Renderer {
   async close(): Promise<void> {
     await this.browser.close()
   }
+
+  url(): URL {
+    return new URL(this.page.url())
+  }
 }
 
 export default Renderer

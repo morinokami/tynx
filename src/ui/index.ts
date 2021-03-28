@@ -1,5 +1,4 @@
 import blessed from 'blessed'
-import fs from 'fs'
 
 const boxOptions: blessed.Widgets.BoxOptions = {
   top: 'center',
@@ -24,16 +23,20 @@ const cursorOptions: blessed.Widgets.BoxOptions = {
 }
 
 class Screen {
-  private text: string
   private screen: blessed.Widgets.Screen
   private box: blessed.Widgets.BoxElement
   private cursorTop: number
   private cursorLeft: number
   private cursor: blessed.Widgets.BoxElement
+  private follow: (url: string) => void
   private exit: () => Promise<void>
 
-  constructor(md: string, title: string, exit: () => Promise<void>) {
-    this.text = md
+  constructor(
+    title: string,
+    md: string,
+    follow: (url: string) => Promise<void>,
+    exit: () => Promise<void>,
+  ) {
     this.screen = blessed.screen({
       smartCSR: true,
       forceUnicode: true,
@@ -51,6 +54,7 @@ class Screen {
         left: this.cursorLeft,
       }),
     )
+    this.follow = follow
     this.exit = exit
 
     this.bindListeners()
@@ -64,7 +68,7 @@ class Screen {
       this.screen.render()
     })
 
-    this.box.on('click', (mouse) => {
+    this.box.on('click', async (mouse) => {
       // move the cursor
       this.cursor.detach()
       const { x, y } = mouse
@@ -87,7 +91,12 @@ class Screen {
           const end = start + match[0].length
           if (start <= clickedIndex && clickedIndex < end) {
             // move to the link destination
-            // match[1]
+            this.cursor.detach()
+            this.box.content = ''
+            this.screen.title = ''
+            this.screen.render()
+            await this.follow(match[1])
+            break
           }
           match = regex.exec(text)
         }
@@ -132,7 +141,7 @@ class Screen {
     return position
   }
 
-  private renderCursor() {
+  private renderCursor(): void {
     this.cursor = blessed.box(
       Object.assign({}, cursorOptions, {
         parent: this.box,
@@ -143,6 +152,23 @@ class Screen {
   }
 
   run(): void {
+    this.screen.render()
+  }
+
+  update(title: string, md: string): void {
+    this.screen.title = title
+    this.box = blessed.box(Object.assign({}, boxOptions, { content: md }))
+    this.screen.append(this.box)
+    this.cursorTop = 0
+    this.cursorLeft = 0
+    this.cursor = blessed.box(
+      Object.assign({}, cursorOptions, {
+        parent: this.box,
+        top: this.cursorTop,
+        left: this.cursorLeft,
+      }),
+    )
+    this.bindListeners()
     this.screen.render()
   }
 }
