@@ -1,4 +1,5 @@
 import blessed from 'blessed'
+import fs from 'fs'
 
 const boxOptions: blessed.Widgets.BoxOptions = {
   top: 'center',
@@ -64,12 +65,33 @@ class Screen {
     })
 
     this.box.on('click', (mouse) => {
+      // move the cursor
       this.cursor.detach()
       const { x, y } = mouse
       this.cursorTop = this.box.childBase + y - 1
       this.cursorLeft = x - 1
       this.renderCursor()
       this.screen.render()
+
+      // check if the clicked chunk is a markdown link
+      const lines = this.box.getScreenLines()
+      const before = lines.slice(0, this.cursorTop)
+      const clickedIndex = before.join('').length + this.cursorLeft
+      const clickedLine = lines[this.cursorTop]
+      if (this.cursorLeft <= clickedLine.length) {
+        const text = lines.join('')
+        const regex = /\[[\w\s\d]+\]\(((?:\/|https?:\/\/)[\w\d./?=#]+)\)/g // needs improvement!
+        let match = regex.exec(text)
+        while (match) {
+          const start = match.index
+          const end = start + match[0].length
+          if (start <= clickedIndex && clickedIndex < end) {
+            // move to the link destination
+            // match[1]
+          }
+          match = regex.exec(text)
+        }
+      }
     })
 
     this.screen.key(['escape', 'q', 'C-c'], async () => {
