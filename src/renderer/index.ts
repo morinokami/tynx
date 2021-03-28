@@ -1,19 +1,17 @@
 import puppeteer, { Browser, Page } from 'puppeteer'
+
+export type RenderResult = {
+  title: string
+  content: string
+}
+
 class Renderer {
   private browser: Browser
   private page: Page
-  private _title: string
-  private content: string
-
-  get title(): string {
-    return this._title
-  }
 
   constructor(browser: Browser, page: Page) {
     this.browser = browser
     this.page = page
-    this._title = ''
-    this.content = ''
   }
 
   static async init(): Promise<Renderer> {
@@ -22,15 +20,26 @@ class Renderer {
     return new Renderer(browser, page)
   }
 
-  async evaluate(url: string): Promise<string> {
+  async goto(url: string): Promise<void> {
     await this.page.goto(url)
-    this._title = await this.page.title()
-    this.content = await this.page.evaluate(() => document.body.innerHTML)
-    return this.content
+  }
+
+  async evaluate(): Promise<RenderResult> {
+    const title = await this.page.title()
+    const content = await this.page.evaluate(() => document.body.innerHTML)
+    return { title, content }
   }
 
   async close(): Promise<void> {
     await this.browser.close()
+  }
+
+  async goForward(): Promise<void> {
+    await this.page.goForward()
+  }
+
+  async goBack(): Promise<void> {
+    await this.page.goBack()
   }
 
   url(): URL {

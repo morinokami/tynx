@@ -14,22 +14,36 @@ const main = async (): Promise<void> => {
     return
   }
 
-  const htmlBody = await renderer.evaluate(cli.url)
-  const md = htmlToMarkdown(htmlBody)
-  const follow = async (url: string) => {
+  const follow = async (url: string): Promise<void> => {
     if (url.startsWith('/')) {
       const { origin } = renderer.url()
       url = `${origin}${url}`
     }
-    const htmlBody = await renderer.evaluate(url)
-    const md = htmlToMarkdown(htmlBody)
-    screen.update(renderer.title, md)
+    await renderer.goto(url)
+    render()
   }
-  const cleanUp = async () => {
+  const goFoward = async (): Promise<void> => {
+    await renderer.goForward()
+    render()
+  }
+  const goBack = async (): Promise<void> => {
+    await renderer.goBack()
+    render()
+  }
+  const cleanUp = async (): Promise<void> => {
     await renderer.close()
-    return process.exit(0)
+    process.exit(0)
   }
-  const screen = new Screen(renderer.title, md, follow, cleanUp)
+  const render = async () => {
+    const { title, content } = await renderer.evaluate()
+    const md = htmlToMarkdown(content)
+    screen.update(title, md)
+  }
+
+  await renderer.goto(cli.url)
+  const { title, content } = await renderer.evaluate()
+  const md = htmlToMarkdown(content)
+  const screen = new Screen(title, md, follow, goFoward, goBack, cleanUp)
 
   screen.run()
 }

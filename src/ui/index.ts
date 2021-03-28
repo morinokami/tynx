@@ -28,13 +28,17 @@ class Screen {
   private cursorTop: number
   private cursorLeft: number
   private cursor: blessed.Widgets.BoxElement
-  private follow: (url: string) => void
+  private follow: (url: string) => Promise<void>
+  private goForward: () => Promise<void>
+  private goBack: () => Promise<void>
   private exit: () => Promise<void>
 
   constructor(
     title: string,
     md: string,
     follow: (url: string) => Promise<void>,
+    goForward: () => Promise<void>,
+    goBack: () => Promise<void>,
     exit: () => Promise<void>,
   ) {
     this.screen = blessed.screen({
@@ -55,6 +59,8 @@ class Screen {
       }),
     )
     this.follow = follow
+    this.goForward = goForward
+    this.goBack = goBack
     this.exit = exit
 
     this.bindListeners()
@@ -103,8 +109,18 @@ class Screen {
       }
     })
 
-    this.screen.key(['escape', 'q', 'C-c'], async () => {
-      await this.exit()
+    this.screen.key(['escape', 'q', 'C-c', '[', ']'], async (ch: string) => {
+      switch (ch) {
+        case '[':
+          await this.goBack()
+          break
+        case ']':
+          await this.goForward()
+          break
+        default:
+          await this.exit()
+          break
+      }
     })
   }
 
