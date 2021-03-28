@@ -22,6 +22,8 @@ const cursorOptions: blessed.Widgets.BoxOptions = {
   },
 }
 
+const link = /\[([^[]+)\]\(([^)]+)\)/gm
+
 class Screen {
   private screen: blessed.Widgets.Screen
   private box: blessed.Widgets.BoxElement
@@ -47,7 +49,11 @@ class Screen {
       fullUnicode: true,
     })
     this.screen.title = title
-    this.box = blessed.box(Object.assign({}, boxOptions, { content: md }))
+    this.box = blessed.box(
+      Object.assign({}, boxOptions, {
+        content: md.replace(link, `{underline}${'$&'}{/underline}`),
+      }),
+    )
     this.screen.append(this.box)
     this.cursorTop = 0
     this.cursorLeft = 0
@@ -97,8 +103,7 @@ class Screen {
       const clickedLine = lines[this.cursorTop]
       if (this.cursorLeft <= clickedLine.length) {
         const text = lines.join('')
-        const regex = /\[([^[]+)\]\(([^)]+)\)/gm
-        let match = regex.exec(text)
+        let match = link.exec(text)
         while (match) {
           const start = match.index
           const end = start + match[0].length
@@ -108,7 +113,7 @@ class Screen {
             await this.follow(match[2])
             break
           }
-          match = regex.exec(text)
+          match = link.exec(text)
         }
       }
     })
@@ -179,7 +184,11 @@ class Screen {
 
   update(title: string, md: string): void {
     this.screen.title = title
-    this.box = blessed.box(Object.assign({}, boxOptions, { content: md }))
+    this.box = blessed.box(
+      Object.assign({}, boxOptions, {
+        content: md.replace(link, `{underline}${'$&'}{/underline}`),
+      }),
+    )
     this.screen.append(this.box)
     this.cursorTop = 0
     this.cursorLeft = 0
