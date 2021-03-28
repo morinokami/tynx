@@ -67,6 +67,13 @@ class Screen {
   }
 
   private bindListeners(): void {
+    const clearScreen = () => {
+      this.cursor.detach()
+      this.box.content = ''
+      this.screen.title = ''
+      this.screen.render()
+    }
+
     this.box.key(['h', 'j', 'k', 'l'], (ch: string) => {
       this.cursor.detach()
       this.updateCoordinate(ch)
@@ -96,11 +103,8 @@ class Screen {
           const start = match.index
           const end = start + match[0].length
           if (start <= clickedIndex && clickedIndex < end) {
-            // move to the link destination
-            this.cursor.detach()
-            this.box.content = ''
-            this.screen.title = ''
-            this.screen.render()
+            // jump to the link destination
+            clearScreen()
             await this.follow(match[2])
             break
           }
@@ -112,9 +116,11 @@ class Screen {
     this.screen.key(['escape', 'q', 'C-c', '[', ']'], async (ch: string) => {
       switch (ch) {
         case '[':
+          clearScreen()
           await this.goBack()
           break
         case ']':
+          clearScreen()
           await this.goForward()
           break
         default:
