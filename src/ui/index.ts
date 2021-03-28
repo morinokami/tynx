@@ -23,16 +23,24 @@ const cursorOptions: blessed.Widgets.BoxOptions = {
 }
 
 class Screen {
-  private text: string
   private screen: blessed.Widgets.Screen
   private box: blessed.Widgets.BoxElement
   private cursorTop: number
   private cursorLeft: number
   private cursor: blessed.Widgets.BoxElement
+  private follow: (url: string) => Promise<void>
+  private goForward: () => Promise<void>
+  private goBack: () => Promise<void>
   private exit: () => Promise<void>
 
-  constructor(md: string, title: string, exit: () => Promise<void>) {
-    this.text = md
+  constructor(
+    title: string,
+    md: string,
+    follow: (url: string) => Promise<void>,
+    goForward: () => Promise<void>,
+    goBack: () => Promise<void>,
+    exit: () => Promise<void>,
+  ) {
     this.screen = blessed.screen({
       smartCSR: true,
       forceUnicode: true,
@@ -50,6 +58,9 @@ class Screen {
         left: this.cursorLeft,
       }),
     )
+    this.follow = follow
+    this.goForward = goForward
+    this.goBack = goBack
     this.exit = exit
 
     this.bindListeners()
@@ -63,17 +74,53 @@ class Screen {
       this.screen.render()
     })
 
-    this.box.on('click', (mouse) => {
+    this.box.on('click', async (mouse) => {
+      // move the cursor
       this.cursor.detach()
       const { x, y } = mouse
       this.cursorTop = this.box.childBase + y - 1
       this.cursorLeft = x - 1
       this.renderCursor()
       this.screen.render()
+
+      // check if the clicked chunk is a markdown link
+      const lines = this.box.getScreenLines()
+      const before = lines.slice(0, this.cursorTop)
+      const clickedIndex = before.join('').length + this.cursorLeft
+      const clickedLine = lines[this.cursorTop]
+      if (this.cursorLeft <= clickedLine.length) {
+        const text = lines.join('')
+        const regex = /\[[\w\s\d]+\]\(((?:\/|https?:\/\/)[\w\d./?=#]+)\)/g // needs improvement!
+        let match = regex.exec(text)
+        while (match) {
+          const start = match.index
+          const end = start + match[0].length
+          if (start <= clickedIndex && clickedIndex < end) {
+            // move to the link destination
+            this.cursor.detach()
+            this.box.content = ''
+            this.screen.title = ''
+            this.screen.render()
+            await this.follow(match[1])
+            break
+          }
+          match = regex.exec(text)
+        }
+      }
     })
 
-    this.screen.key(['escape', 'q', 'C-c'], async () => {
-      await this.exit()
+    this.screen.key(['escape', 'q', 'C-c', '[', ']'], async (ch: string) => {
+      switch (ch) {
+        case '[':
+          await this.goBack()
+          break
+        case ']':
+          await this.goForward()
+          break
+        default:
+          await this.exit()
+          break
+      }
     })
   }
 
@@ -110,7 +157,7 @@ class Screen {
     return position
   }
 
-  private renderCursor() {
+  private renderCursor(): void {
     this.cursor = blessed.box(
       Object.assign({}, cursorOptions, {
         parent: this.box,
@@ -121,6 +168,23 @@ class Screen {
   }
 
   run(): void {
+    this.screen.render()
+  }
+
+  update(title: string, md: string): void {
+    this.screen.title = title
+    this.box = blessed.box(Object.assign({}, boxOptions, { content: md }))
+    this.screen.append(this.box)
+    this.cursorTop = 0
+    this.cursorLeft = 0
+    this.cursor = blessed.box(
+      Object.assign({}, cursorOptions, {
+        parent: this.box,
+        top: this.cursorTop,
+        left: this.cursorLeft,
+      }),
+    )
+    this.bindListeners()
     this.screen.render()
   }
 }
