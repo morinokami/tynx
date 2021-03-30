@@ -1,4 +1,5 @@
 import blessed from 'blessed'
+import stripAnsi from 'strip-ansi'
 
 const boxOptions: blessed.Widgets.BoxOptions = {
   top: 'center',
@@ -99,10 +100,10 @@ class Screen {
       // check if the clicked chunk is a markdown link
       const lines = this.box.getScreenLines()
       const before = lines.slice(0, this.cursorTop)
-      const clickedIndex = before.join('').length + this.cursorLeft
+      const clickedIndex = stripAnsi(before.join('')).length + this.cursorLeft
       const clickedLine = lines[this.cursorTop]
       if (this.cursorLeft <= clickedLine.length) {
-        const text = lines.join('')
+        const text = stripAnsi(lines.join(''))
         let match = link.exec(text)
         while (match) {
           const start = match.index
