@@ -73,15 +73,19 @@ class Screen {
     this.bindListeners()
   }
 
-  private bindListeners(): void {
-    const clearScreen = () => {
-      this.cursor.detach()
-      this.box.content = ''
-      this.screen.title = ''
-      this.screen.render()
-    }
+  private clearScreen(): void {
+    this.cursor.detach()
+    this.box.content = ''
+    this.screen.title = ''
+    this.screen.render()
+  }
 
-    this.box.key(['h', 'j', 'k', 'l'], (ch: string) => {
+  private bindListeners(): void {
+    this.box.key(['h', 'j', 'k', 'l', 'f'], async (ch: string) => {
+      if (ch === 'f') {
+        await this.followLinkUnderCursor()
+        return
+      }
       this.cursor.detach()
       this.updateCoordinate(ch)
       this.renderCursor()
@@ -98,35 +102,17 @@ class Screen {
       this.screen.render()
 
       // check if the clicked chunk is a markdown link
-      const lines = this.box.getScreenLines()
-      const before = lines.slice(0, this.cursorTop)
-      const clickedIndex = stripAnsi(before.join('')).length + this.cursorLeft
-      const clickedLine = lines[this.cursorTop]
-      if (this.cursorLeft <= clickedLine.length) {
-        const text = stripAnsi(lines.join(''))
-        let match = link.exec(text)
-        while (match) {
-          const start = match.index
-          const end = start + match[0].length
-          if (start <= clickedIndex && clickedIndex < end) {
-            // jump to the link destination
-            clearScreen()
-            await this.follow(match[2])
-            break
-          }
-          match = link.exec(text)
-        }
-      }
+      this.followLinkUnderCursor()
     })
 
     this.screen.key(['escape', 'q', 'C-c', '[', ']'], async (ch: string) => {
       switch (ch) {
         case '[':
-          clearScreen()
+          this.clearScreen()
           await this.goBack()
           break
         case ']':
-          clearScreen()
+          this.clearScreen()
           await this.goForward()
           break
         default:
@@ -177,6 +163,29 @@ class Screen {
         left: this.cursorLeft,
       }),
     )
+  }
+
+  private async followLinkUnderCursor(): Promise<void> {
+    // check if the chunk under cursor is a markdown link
+    const lines = this.box.getScreenLines()
+    const before = lines.slice(0, this.cursorTop)
+    const cursorIndex = stripAnsi(before.join('')).length + this.cursorLeft
+    const ccursorLine = lines[this.cursorTop]
+    if (this.cursorLeft <= ccursorLine.length) {
+      const text = stripAnsi(lines.join(''))
+      let match = link.exec(text)
+      while (match) {
+        const start = match.index
+        const end = start + match[0].length
+        if (start <= cursorIndex && cursorIndex < end) {
+          // jump to the link destination
+          this.clearScreen()
+          await this.follow(match[2])
+          break
+        }
+        match = link.exec(text)
+      }
+    }
   }
 
   run(): void {
