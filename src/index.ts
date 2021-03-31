@@ -23,12 +23,16 @@ const main = async (): Promise<void> => {
     render()
   }
   const goFoward = async (): Promise<void> => {
-    await renderer.goForward()
-    render()
+    if (await renderer.goForward()) {
+      screen.clear()
+      render()
+    }
   }
   const goBack = async (): Promise<void> => {
-    await renderer.goBack()
-    render()
+    if (await renderer.goBack()) {
+      screen.clear()
+      render()
+    }
   }
   const cleanUp = async (): Promise<void> => {
     await renderer.close()

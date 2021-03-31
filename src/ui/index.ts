@@ -73,7 +73,7 @@ class Screen {
     this.bindListeners()
   }
 
-  private clearScreen(): void {
+  clear(): void {
     this.cursor.detach()
     this.box.content = ''
     this.screen.title = ''
@@ -81,16 +81,36 @@ class Screen {
   }
 
   private bindListeners(): void {
-    this.box.key(['h', 'j', 'k', 'l', 'f'], async (ch: string) => {
-      if (ch === 'f') {
-        await this.followLinkUnderCursor()
-        return
-      }
-      this.cursor.detach()
-      this.updateCoordinate(ch)
-      this.renderCursor()
-      this.screen.render()
-    })
+    this.box.key(
+      ['h', 'j', 'k', 'l', 'f', 'q', '[', ']'],
+      async (ch: string) => {
+        switch (ch) {
+          case 'f':
+            // Follow link
+            await this.followLinkUnderCursor()
+            break
+          case '[':
+            // Go back
+            await this.goBack()
+            break
+          case ']':
+            // Go forward
+            await this.goForward()
+            break
+          case 'q':
+            // Quit
+            await this.exit()
+            break
+          default:
+            // Update cursor position
+            this.cursor.detach()
+            this.updateCoordinate(ch)
+            this.renderCursor()
+            this.screen.render()
+            break
+        }
+      },
+    )
 
     this.box.on('click', async (mouse) => {
       // move the cursor
@@ -103,22 +123,6 @@ class Screen {
 
       // check if the clicked chunk is a markdown link
       this.followLinkUnderCursor()
-    })
-
-    this.screen.key(['escape', 'q', 'C-c', '[', ']'], async (ch: string) => {
-      switch (ch) {
-        case '[':
-          this.clearScreen()
-          await this.goBack()
-          break
-        case ']':
-          this.clearScreen()
-          await this.goForward()
-          break
-        default:
-          await this.exit()
-          break
-      }
     })
   }
 
@@ -179,7 +183,7 @@ class Screen {
         const end = start + match[0].length
         if (start <= cursorIndex && cursorIndex < end) {
           // jump to the link destination
-          this.clearScreen()
+          this.clear()
           await this.follow(match[2])
           break
         }

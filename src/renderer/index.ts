@@ -8,10 +8,14 @@ export type RenderResult = {
 class Renderer {
   private browser: Browser
   private page: Page
+  private history: string[]
+  private forward: string[]
 
   constructor(browser: Browser, page: Page) {
     this.browser = browser
     this.page = page
+    this.history = []
+    this.forward = []
   }
 
   static async init(): Promise<Renderer> {
@@ -21,6 +25,8 @@ class Renderer {
   }
 
   async goto(url: string): Promise<void> {
+    this.history.push(url)
+    this.forward = []
     await this.page.goto(url)
   }
 
@@ -34,12 +40,28 @@ class Renderer {
     await this.browser.close()
   }
 
-  async goForward(): Promise<void> {
-    await this.page.goForward()
+  async goForward(): Promise<boolean> {
+    if (this.forward.length > 0) {
+      this.history.push(this.forward.pop() as string)
+      await Promise.all([
+        this.page.waitForNavigation({ waitUntil: ['load', 'networkidle2'] }),
+        this.page.goForward(),
+      ])
+      return true
+    }
+    return false
   }
 
-  async goBack(): Promise<void> {
-    await this.page.goBack()
+  async goBack(): Promise<boolean> {
+    if (this.history.length > 1) {
+      this.forward.push(this.history.pop() as string)
+      await Promise.all([
+        this.page.waitForNavigation({ waitUntil: ['load', 'networkidle2'] }),
+        this.page.goBack(),
+      ])
+      return true
+    }
+    return false
   }
 
   url(): URL {
