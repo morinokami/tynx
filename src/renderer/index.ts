@@ -21,6 +21,16 @@ class Renderer {
   static async init(): Promise<Renderer> {
     const browser = await puppeteer.launch()
     const page = await browser.newPage()
+    await page.setRequestInterception(true)
+    page.on('request', (request) => {
+      if (
+        ['image', 'stylesheet', 'font'].indexOf(request.resourceType()) !== -1
+      ) {
+        request.abort()
+      } else {
+        request.continue()
+      }
+    })
     return new Renderer(browser, page)
   }
 
