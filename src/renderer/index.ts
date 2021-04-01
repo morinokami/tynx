@@ -40,6 +40,10 @@ class Renderer {
     await this.page.goto(url)
   }
 
+  async reload(): Promise<void> {
+    await this.page.reload()
+  }
+
   async evaluate(): Promise<RenderResult> {
     const title = await this.page.title()
     const content = await this.page.evaluate(() => document.body.innerHTML)

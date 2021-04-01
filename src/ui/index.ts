@@ -32,6 +32,7 @@ class Screen {
   private cursorLeft: number
   private cursor: blessed.Widgets.BoxElement
   private follow: (url: string) => Promise<void>
+  private reload: () => Promise<void>
   private goForward: () => Promise<void>
   private goBack: () => Promise<void>
   private exit: () => Promise<void>
@@ -40,6 +41,7 @@ class Screen {
     title: string,
     md: string,
     follow: (url: string) => Promise<void>,
+    reload: () => Promise<void>,
     goForward: () => Promise<void>,
     goBack: () => Promise<void>,
     exit: () => Promise<void>,
@@ -66,6 +68,7 @@ class Screen {
       }),
     )
     this.follow = follow
+    this.reload = reload
     this.goForward = goForward
     this.goBack = goBack
     this.exit = exit
@@ -82,12 +85,16 @@ class Screen {
 
   private bindListeners(): void {
     this.box.key(
-      ['h', 'j', 'k', 'l', 'f', 'q', '[', ']'],
+      ['f', 'r', '[', ']', 'q', 'h', 'j', 'k', 'l'],
       async (ch: string) => {
         switch (ch) {
           case 'f':
             // Follow link
             await this.followLinkUnderCursor()
+            break
+          case 'r':
+            // Reload
+            await this.reload()
             break
           case '[':
             // Go back

@@ -20,18 +20,23 @@ const main = async (): Promise<void> => {
       url = `${origin}${url}`
     }
     await renderer.goto(url)
-    render()
+    await render()
+  }
+  const reload = async (): Promise<void> => {
+    screen.clear()
+    await renderer.reload()
+    await render()
   }
   const goFoward = async (): Promise<void> => {
     if (await renderer.goForward()) {
       screen.clear()
-      render()
+      await render()
     }
   }
   const goBack = async (): Promise<void> => {
     if (await renderer.goBack()) {
       screen.clear()
-      render()
+      await render()
     }
   }
   const cleanUp = async (): Promise<void> => {
@@ -47,7 +52,15 @@ const main = async (): Promise<void> => {
   await renderer.goto(cli.url)
   const { title, content } = await renderer.evaluate()
   const md = htmlToMarkdown(content)
-  const screen = new Screen(title, md, follow, goFoward, goBack, cleanUp)
+  const screen = new Screen(
+    title,
+    md,
+    follow,
+    reload,
+    goFoward,
+    goBack,
+    cleanUp,
+  )
 
   screen.run()
 }
