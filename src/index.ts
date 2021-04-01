@@ -28,14 +28,16 @@ const main = async (): Promise<void> => {
     await render()
   }
   const goFoward = async (): Promise<void> => {
-    if (await renderer.goForward()) {
+    if (renderer.canGoForward()) {
       screen.clear()
+      await renderer.goForward()
       await render()
     }
   }
   const goBack = async (): Promise<void> => {
-    if (await renderer.goBack()) {
+    if (renderer.canGoBack()) {
       screen.clear()
+      await renderer.goBack()
       await render()
     }
   }

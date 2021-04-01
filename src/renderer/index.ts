@@ -54,28 +54,28 @@ class Renderer {
     await this.browser.close()
   }
 
-  async goForward(): Promise<boolean> {
-    if (this.forward.length > 0) {
-      this.history.push(this.forward.pop() as string)
-      await Promise.all([
-        this.page.waitForNavigation({ waitUntil: ['load', 'networkidle2'] }),
-        this.page.goForward(),
-      ])
-      return true
-    }
-    return false
+  async goForward(): Promise<void> {
+    this.history.push(this.forward.pop() as string)
+    await Promise.all([
+      this.page.waitForNavigation({ waitUntil: ['load', 'networkidle2'] }),
+      this.page.goForward(),
+    ])
   }
 
-  async goBack(): Promise<boolean> {
-    if (this.history.length > 1) {
-      this.forward.push(this.history.pop() as string)
-      await Promise.all([
-        this.page.waitForNavigation({ waitUntil: ['load', 'networkidle2'] }),
-        this.page.goBack(),
-      ])
-      return true
-    }
-    return false
+  async goBack(): Promise<void> {
+    this.forward.push(this.history.pop() as string)
+    await Promise.all([
+      this.page.waitForNavigation({ waitUntil: ['load', 'networkidle2'] }),
+      this.page.goBack(),
+    ])
+  }
+
+  canGoForward(): boolean {
+    return this.forward.length > 0
+  }
+
+  canGoBack(): boolean {
+    return this.history.length > 1
   }
 
   url(): URL {
