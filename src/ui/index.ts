@@ -23,7 +23,24 @@ const cursorOptions: blessed.Widgets.BoxOptions = {
   },
 }
 
+const inputFieldOptions: blessed.Widgets.BoxOptions = {
+  input: true,
+  keys: true,
+  top: 'center',
+  left: 'center',
+  width: '100%',
+  height: 3,
+  border: {
+    type: 'line',
+  },
+}
+
 const link = /\[([^[]+)\]\(([^)]+)\)/gm
+
+type CursorPosition = {
+  top: number
+  left: number
+}
 
 class Screen {
   private screen: blessed.Widgets.Screen
@@ -85,7 +102,7 @@ class Screen {
 
   private bindListeners(): void {
     this.box.key(
-      ['f', 'r', '[', ']', 'q', 'h', 'j', 'k', 'l'],
+      ['f', 'r', '[', ']', 'e', 'q', 'h', 'j', 'k', 'l'],
       async (ch: string) => {
         switch (ch) {
           case 'f':
@@ -103,6 +120,9 @@ class Screen {
           case ']':
             // Go forward
             await this.goForward()
+            break
+          case 'e':
+            await this.followInput()
             break
           case 'q':
             // Quit
@@ -176,13 +196,31 @@ class Screen {
     )
   }
 
+  private async followInput(): Promise<void> {
+    const input = blessed.textbox(inputFieldOptions)
+    this.screen.append(input)
+    this.screen.render()
+    input.focus()
+    input.readInput(async (err, value) => {
+      input.destroy()
+      if (!err && value?.length) {
+        await this.follow(value as string)
+      }
+      this.screen.render()
+      // this.update(this.screen.title, this.md, {
+      //   top: this.cursorTop,
+      //   left: this.cursorLeft,
+      // })
+    })
+  }
+
   private async followLinkUnderCursor(): Promise<void> {
     // check if the chunk under cursor is a markdown link
     const lines = this.box.getScreenLines()
     const before = lines.slice(0, this.cursorTop)
     const cursorIndex = stripAnsi(before.join('')).length + this.cursorLeft
-    const ccursorLine = lines[this.cursorTop]
-    if (this.cursorLeft <= ccursorLine.length) {
+    const cursorLine = lines[this.cursorTop]
+    if (this.cursorLeft <= cursorLine.length) {
       const text = stripAnsi(lines.join(''))
       let match = link.exec(text)
       while (match) {
@@ -190,7 +228,6 @@ class Screen {
         const end = start + match[0].length
         if (start <= cursorIndex && cursorIndex < end) {
           // jump to the link destination
-          this.clear()
           await this.follow(match[2])
           break
         }
@@ -203,7 +240,7 @@ class Screen {
     this.screen.render()
   }
 
-  update(title: string, md: string): void {
+  update(title: string, md: string, cursorPosition?: CursorPosition): void {
     this.screen.title = title
     this.box = blessed.box(
       Object.assign({}, boxOptions, {
@@ -211,8 +248,13 @@ class Screen {
       }),
     )
     this.screen.append(this.box)
-    this.cursorTop = 0
-    this.cursorLeft = 0
+    if (cursorPosition) {
+      this.cursorTop = cursorPosition.top
+      this.cursorLeft = cursorPosition.left
+    } else {
+      this.cursorTop = 0
+      this.cursorLeft = 0
+    }
     this.cursor = blessed.box(
       Object.assign({}, cursorOptions, {
         parent: this.box,

@@ -1,5 +1,5 @@
 import meow from 'meow'
-import validUrl from 'valid-url'
+import { validateUrl } from '../lib'
 
 const usage = `
 	Usage
@@ -23,7 +23,7 @@ class CLI {
     if (!this.url) {
       throw new Error('URL not specified')
     }
-    if (!validUrl.isWebUri(this._url)) {
+    if (!validateUrl(this._url)) {
       throw new Error(`Not a valid URL: ${this._url}`)
     }
   }

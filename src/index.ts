@@ -1,7 +1,7 @@
 import CLI from './cli'
 import Renderer from './renderer'
 import Screen from './ui'
-import { htmlToMarkdown } from './lib'
+import { htmlToMarkdown, validateUrl } from './lib'
 
 const main = async (): Promise<void> => {
   const cli = new CLI()
@@ -11,6 +11,7 @@ const main = async (): Promise<void> => {
     cli.validateUrl()
   } catch (err) {
     console.error(err.message)
+    await renderer.close()
     return
   }
 
@@ -19,7 +20,10 @@ const main = async (): Promise<void> => {
       const { origin } = renderer.url()
       url = `${origin}${url}`
     }
-    await renderer.goto(url)
+    if (validateUrl(url)) {
+      screen.clear()
+      await renderer.goto(url)
+    }
     await render()
   }
   const reload = async (): Promise<void> => {
@@ -45,7 +49,7 @@ const main = async (): Promise<void> => {
     await renderer.close()
     process.exit(0)
   }
-  const render = async () => {
+  const render = async (): Promise<void> => {
     const { title, content } = await renderer.evaluate()
     const md = htmlToMarkdown(content)
     screen.update(title, md)
