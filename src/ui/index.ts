@@ -217,6 +217,9 @@ class Screen {
   private async followLinkUnderCursor(): Promise<void> {
     // check if the chunk under cursor is a markdown link
     const lines = this.box.getScreenLines()
+    if (this.cursorTop >= lines.length) {
+      return
+    }
     const before = lines.slice(0, this.cursorTop)
     const cursorIndex = stripAnsi(before.join('')).length + this.cursorLeft
     const cursorLine = lines[this.cursorTop]
