@@ -207,10 +207,6 @@ class Screen {
         await this.follow(value as string)
       }
       this.screen.render()
-      // this.update(this.screen.title, this.md, {
-      //   top: this.cursorTop,
-      //   left: this.cursorLeft,
-      // })
     })
   }
 
