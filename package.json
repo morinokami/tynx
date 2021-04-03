@@ -12,7 +12,8 @@
   "main": "index.js",
   "scripts": {
     "tynx": "ts-node ./src/index.ts",
-    "build": "tsc -p .",
+    "build": "yarn clean && tsc -p .",
+    "clean": "rm -rf ./dist",
     "lint": "eslint src/**/*.ts",
     "format": "prettier --write 'src/**/*.{js,ts}'",
     "test": "jest",
