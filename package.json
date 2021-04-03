@@ -10,6 +10,12 @@
     "url": "https://github.com/morinokami/tynx.git"
   },
   "main": "index.js",
+  "bin": {
+    "tynx": "./dist/index.js"
+  },
+  "files": [
+    "./dist"
+  ],
   "scripts": {
     "tynx": "ts-node ./src/index.ts",
     "build": "yarn clean && tsc -p .",

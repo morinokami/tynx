@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import CLI from './cli'
 import Renderer from './renderer'
 import Screen from './ui'
