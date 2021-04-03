@@ -5,6 +5,10 @@
   "author": "Shinya Fujino <shf0811@gmail.com>",
   "license": "MIT",
   "keywords": [],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/morinokami/tynx.git"
+  },
   "main": "index.js",
   "scripts": {
     "build": "tsc -p .",
