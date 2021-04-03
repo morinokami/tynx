@@ -1,5 +1,5 @@
 import { Renderer } from './renderer'
-import Screen from './ui'
+import { Screen } from './ui'
 import { htmlToMarkdown, validateUrl } from './lib'
 
 export const start = async (url: string): Promise<void> => {
