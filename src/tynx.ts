@@ -1,4 +1,4 @@
-import Renderer from './renderer'
+import { Renderer } from './renderer'
 import Screen from './ui'
 import { htmlToMarkdown, validateUrl } from './lib'
 
