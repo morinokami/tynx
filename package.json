@@ -2,6 +2,9 @@
   "name": "tynx",
   "version": "0.0.1",
   "description": "",
+  "author": "Shinya Fujino <shf0811@gmail.com>",
+  "license": "",
+  "keywords": [],
   "main": "index.js",
   "scripts": {
     "build": "tsc -p .",
@@ -11,9 +14,6 @@
     "test": "jest",
     "test:watch": "jest --watchAll"
   },
-  "keywords": [],
-  "author": "Shinya Fujino",
-  "license": "",
   "devDependencies": {
     "@types/blessed": "^0.1.17",
     "@types/jest": "^26.0.21",
