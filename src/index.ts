@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import CLI from './cli'
+import { CLI } from './cli'
 import Renderer from './renderer'
 import Screen from './ui'
 import { htmlToMarkdown, validateUrl } from './lib'
@@ -9,10 +9,12 @@ const main = async (): Promise<void> => {
   const cli = new CLI()
   const renderer = await Renderer.init()
 
-  try {
-    cli.validateUrl()
-  } catch (err) {
-    console.error(err.message)
+  if (!cli.url) {
+    console.error('URL not specified')
+    await renderer.close()
+    return
+  } else if (!validateUrl(cli.url)) {
+    console.error(`Not a valid URL: ${cli.url}`)
     await renderer.close()
     return
   }
