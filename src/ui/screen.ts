@@ -1,41 +1,8 @@
 import blessed from 'blessed'
 import stripAnsi from 'strip-ansi'
+import { boxOptions, cursorOptions, inputFieldOptions } from './blessedOptions'
 
-const boxOptions: blessed.Widgets.BoxOptions = {
-  top: 'center',
-  left: 'center',
-  width: '100%',
-  height: '100%',
-  tags: true,
-  border: {
-    type: 'line',
-  },
-  scrollable: true,
-  mouse: true,
-}
-
-const cursorOptions: blessed.Widgets.BoxOptions = {
-  width: 1,
-  height: 1,
-  style: {
-    fg: 'white',
-    bg: 'white',
-  },
-}
-
-const inputFieldOptions: blessed.Widgets.BoxOptions = {
-  input: true,
-  keys: true,
-  top: 'center',
-  left: 'center',
-  width: '100%',
-  height: 3,
-  border: {
-    type: 'line',
-  },
-}
-
-const link = /\[([^[]+)\]\(([^)]+)\)/gm
+const regexMarkdownLink = /\[([^[]+)\]\(([^)]+)\)/gm
 
 export type CursorPosition = {
   top: number
@@ -71,7 +38,10 @@ export class Screen {
     this.screen.title = title
     this.box = blessed.box(
       Object.assign({}, boxOptions, {
-        content: md.replace(link, `{underline}${'$&'}{/underline}`),
+        content: md.replace(
+          regexMarkdownLink,
+          `{underline}${'$&'}{/underline}`,
+        ),
       }),
     )
     this.screen.append(this.box)
@@ -149,7 +119,7 @@ export class Screen {
       this.screen.render()
 
       // check if the clicked chunk is a markdown link
-      this.followLinkUnderCursor()
+      await this.followLinkUnderCursor()
     })
   }
 
@@ -221,7 +191,7 @@ export class Screen {
     const cursorLine = lines[this.cursorTop]
     if (this.cursorLeft <= cursorLine.length) {
       const text = stripAnsi(lines.join(''))
-      let match = link.exec(text)
+      let match = regexMarkdownLink.exec(text)
       while (match) {
         const start = match.index
         const end = start + match[0].length
@@ -230,7 +200,7 @@ export class Screen {
           await this.follow(match[2])
           break
         }
-        match = link.exec(text)
+        match = regexMarkdownLink.exec(text)
       }
     }
   }
@@ -243,7 +213,10 @@ export class Screen {
     this.screen.title = title
     this.box = blessed.box(
       Object.assign({}, boxOptions, {
-        content: md.replace(link, `{underline}${'$&'}{/underline}`),
+        content: md.replace(
+          regexMarkdownLink,
+          `{underline}${'$&'}{/underline}`,
+        ),
       }),
     )
     this.screen.append(this.box)
