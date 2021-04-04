@@ -72,30 +72,47 @@ export class Screen {
 
   private bindListeners(): void {
     this.box.key(
-      ['f', 'r', '[', ']', 'e', 'q', 'h', 'j', 'k', 'l', 'g', 'S-g', '0', '$'],
-      async (ch, key) => {
-        if (key.name === 'f' && !key.shift) {
+      [
+        'f',
+        'r',
+        '[',
+        ']',
+        'e',
+        'q',
+        'h',
+        'j',
+        'k',
+        'l',
+        'g',
+        'S-g',
+        '0',
+        '$',
+        'C-f',
+        'C-b',
+      ],
+      async (_, key) => {
+        if (key.full === 'f') {
           // Follow link
           await this.followLinkUnderCursor()
-        } else if (key.name === 'r' && !key.shift) {
+        } else if (key.full === 'r') {
           // Reload
           await this.reload()
-        } else if (ch === '[') {
+        } else if (key.full === '[') {
           // Go back
           await this.goBack()
-        } else if (ch === ']') {
+        } else if (key.full === ']') {
           // Go forward
           await this.goForward()
-        } else if (key.name === 'e' && !key.shift) {
+        } else if (key.full === 'e') {
           // Follow input
           await this.followInput()
-        } else if (key.name === 'q' && !key.shift) {
+        } else if (key.full === 'q') {
           // Quit
           this.exit()
         } else {
           // Update cursor position
           this.cursor.detach()
-          this.updateCoordinate(ch, key.shift)
+          this.updateCoordinate(key.full)
           this.renderCursor()
           this.screen.render()
         }
@@ -116,34 +133,48 @@ export class Screen {
     })
   }
 
-  private updateCoordinate(ch: string, shift = false): void {
-    if ((ch === 'j' || ch === 'k') && !shift) {
+  private updateCoordinate(input: string): void {
+    if (input === 'j' || input === 'k') {
       this.cursorTop = this.nextCursorPosition(
         this.cursorTop,
-        ch === 'j',
+        input === 'j',
         this.box.getScrollHeight() as number,
         1,
       )
       this.box.scrollTo(this.cursorTop)
-    } else if ((ch === 'h' || ch === 'l') && !shift) {
+    } else if (input === 'h' || input === 'l') {
       this.cursorLeft = this.nextCursorPosition(
         this.cursorLeft,
-        ch === 'l',
+        input === 'l',
         this.box.width as number,
         3,
       )
-    } else if (ch === 'g' && !shift) {
+    } else if (input === 'g') {
       this.cursorTop = 0
       this.cursorLeft = 0
       this.box.scrollTo(this.cursorTop)
-    } else if (ch === 'g' && shift) {
+    } else if (input === 'S-g') {
       this.cursorTop = this.box.getScreenLines().length - 1
       this.cursorLeft = 0
       this.box.scrollTo(this.cursorTop)
-    } else if (ch === '0') {
+    } else if (input === '0') {
       this.cursorLeft = 0
-    } else if (ch === '$') {
+    } else if (input === '$') {
       this.cursorLeft = (this.box.width as number) - 3
+    } else if (input === 'C-f') {
+      this.cursorTop += (this.box.height as number) - 2
+      if (this.cursorTop > this.box.getScrollHeight()) {
+        this.cursorTop = this.box.getScrollHeight() - 1
+      }
+      this.box.scrollTo(this.box.getScrollHeight())
+      this.box.scrollTo(this.cursorTop)
+    } else if (input === 'C-b') {
+      this.cursorTop -= (this.box.height as number) - 1
+      if (this.cursorTop < 0) {
+        this.cursorTop = 0
+      }
+      this.box.scrollTo(0)
+      this.box.scrollTo(this.cursorTop)
     }
   }
 
