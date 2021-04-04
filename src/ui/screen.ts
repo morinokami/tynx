@@ -72,7 +72,7 @@ export class Screen {
 
   private bindListeners(): void {
     this.box.key(
-      ['f', 'r', '[', ']', 'e', 'q', 'h', 'j', 'k', 'l', '0'],
+      ['f', 'r', '[', ']', 'e', 'q', 'h', 'j', 'k', 'l', 'g', '0'],
       async (ch: string) => {
         switch (ch) {
           case 'f':
@@ -139,6 +139,10 @@ export class Screen {
         this.box.width as number,
         3,
       )
+    } else if (ch === 'g') {
+      this.cursorTop = 0
+      this.cursorLeft = 0
+      this.box.scrollTo(this.cursorTop)
     } else if (ch === '0') {
       this.cursorLeft = 0
     }
