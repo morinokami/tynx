@@ -95,7 +95,7 @@ export class Screen {
         } else {
           // Update cursor position
           this.cursor.detach()
-          this.updateCoordinate(key.name, key.shift)
+          this.updateCoordinate(ch, key.shift)
           this.renderCursor()
           this.screen.render()
         }
@@ -143,7 +143,7 @@ export class Screen {
     } else if (ch === '0') {
       this.cursorLeft = 0
     } else if (ch === '$') {
-      // TODO: Move the cursor the the end of the line
+      this.cursorLeft = (this.box.width as number) - 3
     }
   }
 
