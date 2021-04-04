@@ -2,6 +2,7 @@ import blessed from 'blessed'
 import stripAnsi from 'strip-ansi'
 import { boxOptions, cursorOptions, inputFieldOptions } from './blessedOptions'
 
+const regexMarkdownHeading = /#{1,6} .+$/gm
 const regexMarkdownLink = /\[([^[]+)\]\(([^)]+)\)/gm
 
 export type CursorPosition = {
@@ -38,10 +39,9 @@ export class Screen {
     this.screen.title = title
     this.box = blessed.box(
       Object.assign({}, boxOptions, {
-        content: md.replace(
-          regexMarkdownLink,
-          `{underline}${'$&'}{/underline}`,
-        ),
+        content: md
+          .replace(regexMarkdownLink, `{underline}${'$&'}{/underline}`)
+          .replace(regexMarkdownHeading, `{bold}${'$&'}{/bold}`),
       }),
     )
     this.screen.append(this.box)
@@ -213,10 +213,9 @@ export class Screen {
     this.screen.title = title
     this.box = blessed.box(
       Object.assign({}, boxOptions, {
-        content: md.replace(
-          regexMarkdownLink,
-          `{underline}${'$&'}{/underline}`,
-        ),
+        content: md
+          .replace(regexMarkdownLink, `{underline}${'$&'}{/underline}`)
+          .replace(regexMarkdownHeading, `{bold}${'$&'}{/bold}`),
       }),
     )
     this.screen.append(this.box)
