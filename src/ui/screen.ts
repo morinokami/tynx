@@ -72,39 +72,32 @@ export class Screen {
 
   private bindListeners(): void {
     this.box.key(
-      ['f', 'r', '[', ']', 'e', 'q', 'h', 'j', 'k', 'l', 'g', '0'],
-      async (ch: string) => {
-        switch (ch) {
-          case 'f':
-            // Follow link
-            await this.followLinkUnderCursor()
-            break
-          case 'r':
-            // Reload
-            await this.reload()
-            break
-          case '[':
-            // Go back
-            await this.goBack()
-            break
-          case ']':
-            // Go forward
-            await this.goForward()
-            break
-          case 'e':
-            await this.followInput()
-            break
-          case 'q':
-            // Quit
-            await this.exit()
-            break
-          default:
-            // Update cursor position
-            this.cursor.detach()
-            this.updateCoordinate(ch)
-            this.renderCursor()
-            this.screen.render()
-            break
+      ['f', 'r', '[', ']', 'e', 'q', 'h', 'j', 'k', 'l', 'g', 'S-g', '0', '$'],
+      async (ch, key) => {
+        if (key.name === 'f' && !key.shift) {
+          // Follow link
+          await this.followLinkUnderCursor()
+        } else if (key.name === 'r' && !key.shift) {
+          // Reload
+          await this.reload()
+        } else if (ch === '[') {
+          // Go back
+          await this.goBack()
+        } else if (ch === ']') {
+          // Go forward
+          await this.goForward()
+        } else if (key.name === 'e' && !key.shift) {
+          // Follow input
+          await this.followInput()
+        } else if (key.name === 'q' && !key.shift) {
+          // Quit
+          this.exit()
+        } else {
+          // Update cursor position
+          this.cursor.detach()
+          this.updateCoordinate(key.name, key.shift)
+          this.renderCursor()
+          this.screen.render()
         }
       },
     )
@@ -123,8 +116,8 @@ export class Screen {
     })
   }
 
-  private updateCoordinate(ch: string): void {
-    if (ch === 'j' || ch === 'k') {
+  private updateCoordinate(ch: string, shift = false): void {
+    if ((ch === 'j' || ch === 'k') && !shift) {
       this.cursorTop = this.nextCursorPosition(
         this.cursorTop,
         ch === 'j',
@@ -132,19 +125,25 @@ export class Screen {
         1,
       )
       this.box.scrollTo(this.cursorTop)
-    } else if (ch === 'h' || ch === 'l') {
+    } else if ((ch === 'h' || ch === 'l') && !shift) {
       this.cursorLeft = this.nextCursorPosition(
         this.cursorLeft,
         ch === 'l',
         this.box.width as number,
         3,
       )
-    } else if (ch === 'g') {
+    } else if (ch === 'g' && !shift) {
       this.cursorTop = 0
+      this.cursorLeft = 0
+      this.box.scrollTo(this.cursorTop)
+    } else if (ch === 'g' && shift) {
+      this.cursorTop = this.box.getScreenLines().length - 1
       this.cursorLeft = 0
       this.box.scrollTo(this.cursorTop)
     } else if (ch === '0') {
       this.cursorLeft = 0
+    } else if (ch === '$') {
+      // TODO: Move the cursor the the end of the line
     }
   }
 
