@@ -1,5 +1,4 @@
 import TurndownService from 'turndown'
-import validUrl from 'valid-url'
 
 const turndownOptions: TurndownService.Options = {
   headingStyle: 'atx',
@@ -13,6 +12,13 @@ export const htmlToMarkdown = (html: string): string => {
   return turndownService.turndown(html)
 }
 
-export const validateUrl = (url: string): boolean => {
-  return !!validUrl.isWebUri(url)
+const allowedProtocols = ['http', 'https']
+
+export const validateUrl = (urlStr: string): boolean => {
+  try {
+    const url = new URL(urlStr)
+    return allowedProtocols.map((p) => `${p}:`).includes(url.protocol)
+  } catch (err) {
+    return false
+  }
 }
