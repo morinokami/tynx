@@ -63,13 +63,6 @@ export class Screen {
     this.bindListeners()
   }
 
-  clear(): void {
-    this.cursor.detach()
-    this.box.content = ''
-    this.screen.title = ''
-    this.screen.render()
-  }
-
   private bindListeners(): void {
     this.box.key(
       [
@@ -245,6 +238,13 @@ export class Screen {
     this.screen.render()
   }
 
+  clear(): void {
+    this.cursor.detach()
+    this.box.content = ''
+    this.screen.title = ''
+    this.screen.render()
+  }
+
   update(title: string, md: string, cursorPosition?: CursorPosition): void {
     this.screen.title = title
     this.box = blessed.box(
@@ -271,5 +271,9 @@ export class Screen {
     )
     this.bindListeners()
     this.screen.render()
+  }
+
+  setTitle(title: string): void {
+    this.screen.title = title
   }
 }

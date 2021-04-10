@@ -12,18 +12,21 @@ export const start = async (url: string): Promise<void> => {
     }
     if (validateUrl(url)) {
       screen.clear()
+      screen.setTitle('Loading...')
       await renderer.goto(url)
     }
     await render()
   }
   const reload = async (): Promise<void> => {
     screen.clear()
+    screen.setTitle('Loading...')
     await renderer.reload()
     await render()
   }
   const goFoward = async (): Promise<void> => {
     if (renderer.canGoForward()) {
       screen.clear()
+      screen.setTitle('Loading...')
       await renderer.goForward()
       await render()
     }
@@ -31,11 +34,13 @@ export const start = async (url: string): Promise<void> => {
   const goBack = async (): Promise<void> => {
     if (renderer.canGoBack()) {
       screen.clear()
+      screen.setTitle('Loading...')
       await renderer.goBack()
       await render()
     }
   }
   const cleanUp = async (): Promise<void> => {
+    screen.clear()
     await renderer.close()
     process.exit(0)
   }
