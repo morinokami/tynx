@@ -1,41 +1,9 @@
 import blessed from 'blessed'
 import stripAnsi from 'strip-ansi'
+import { boxOptions, cursorOptions, inputFieldOptions } from './blessedOptions'
 
-const boxOptions: blessed.Widgets.BoxOptions = {
-  top: 'center',
-  left: 'center',
-  width: '100%',
-  height: '100%',
-  tags: true,
-  border: {
-    type: 'line',
-  },
-  scrollable: true,
-  mouse: true,
-}
-
-const cursorOptions: blessed.Widgets.BoxOptions = {
-  width: 1,
-  height: 1,
-  style: {
-    fg: 'white',
-    bg: 'white',
-  },
-}
-
-const inputFieldOptions: blessed.Widgets.BoxOptions = {
-  input: true,
-  keys: true,
-  top: 'center',
-  left: 'center',
-  width: '100%',
-  height: 3,
-  border: {
-    type: 'line',
-  },
-}
-
-const link = /\[([^[]+)\]\(([^)]+)\)/gm
+const regexMarkdownHeading = /#{1,6} .+$/gm
+const regexMarkdownLink = /\[([^[]+)\]\(([^)]+)\)/gm
 
 export type CursorPosition = {
   top: number
@@ -71,7 +39,9 @@ export class Screen {
     this.screen.title = title
     this.box = blessed.box(
       Object.assign({}, boxOptions, {
-        content: md.replace(link, `{underline}${'$&'}{/underline}`),
+        content: md
+          .replace(regexMarkdownLink, `{underline}${'$&'}{/underline}`)
+          .replace(regexMarkdownHeading, `{bold}${'$&'}{/bold}`),
       }),
     )
     this.screen.append(this.box)
@@ -102,39 +72,49 @@ export class Screen {
 
   private bindListeners(): void {
     this.box.key(
-      ['f', 'r', '[', ']', 'e', 'q', 'h', 'j', 'k', 'l'],
-      async (ch: string) => {
-        switch (ch) {
-          case 'f':
-            // Follow link
-            await this.followLinkUnderCursor()
-            break
-          case 'r':
-            // Reload
-            await this.reload()
-            break
-          case '[':
-            // Go back
-            await this.goBack()
-            break
-          case ']':
-            // Go forward
-            await this.goForward()
-            break
-          case 'e':
-            await this.followInput()
-            break
-          case 'q':
-            // Quit
-            await this.exit()
-            break
-          default:
-            // Update cursor position
-            this.cursor.detach()
-            this.updateCoordinate(ch)
-            this.renderCursor()
-            this.screen.render()
-            break
+      [
+        'f',
+        'r',
+        '[',
+        ']',
+        'e',
+        'q',
+        'h',
+        'j',
+        'k',
+        'l',
+        'g',
+        'S-g',
+        '0',
+        '$',
+        'C-f',
+        'C-b',
+      ],
+      async (_, key) => {
+        if (key.full === 'f') {
+          // Follow link
+          await this.followLinkUnderCursor()
+        } else if (key.full === 'r') {
+          // Reload
+          await this.reload()
+        } else if (key.full === '[') {
+          // Go back
+          await this.goBack()
+        } else if (key.full === ']') {
+          // Go forward
+          await this.goForward()
+        } else if (key.full === 'e') {
+          // Follow input
+          await this.followInput()
+        } else if (key.full === 'q') {
+          // Quit
+          this.exit()
+        } else {
+          // Update cursor position
+          this.cursor.detach()
+          this.updateCoordinate(key.full)
+          this.renderCursor()
+          this.screen.render()
         }
       },
     )
@@ -149,26 +129,52 @@ export class Screen {
       this.screen.render()
 
       // check if the clicked chunk is a markdown link
-      this.followLinkUnderCursor()
+      await this.followLinkUnderCursor()
     })
   }
 
-  private updateCoordinate(ch: string): void {
-    if (ch === 'j' || ch === 'k') {
+  private updateCoordinate(input: string): void {
+    if (input === 'j' || input === 'k') {
       this.cursorTop = this.nextCursorPosition(
         this.cursorTop,
-        ch === 'j',
+        input === 'j',
         this.box.getScrollHeight() as number,
         1,
       )
       this.box.scrollTo(this.cursorTop)
-    } else if (ch === 'h' || ch === 'l') {
+    } else if (input === 'h' || input === 'l') {
       this.cursorLeft = this.nextCursorPosition(
         this.cursorLeft,
-        ch === 'l',
+        input === 'l',
         this.box.width as number,
         3,
       )
+    } else if (input === 'g') {
+      this.cursorTop = 0
+      this.cursorLeft = 0
+      this.box.scrollTo(this.cursorTop)
+    } else if (input === 'S-g') {
+      this.cursorTop = this.box.getScreenLines().length - 1
+      this.cursorLeft = 0
+      this.box.scrollTo(this.cursorTop)
+    } else if (input === '0') {
+      this.cursorLeft = 0
+    } else if (input === '$') {
+      this.cursorLeft = (this.box.width as number) - 3
+    } else if (input === 'C-f') {
+      this.cursorTop += (this.box.height as number) - 2
+      if (this.cursorTop > this.box.getScrollHeight()) {
+        this.cursorTop = this.box.getScrollHeight() - 1
+      }
+      this.box.scrollTo(this.box.getScrollHeight())
+      this.box.scrollTo(this.cursorTop)
+    } else if (input === 'C-b') {
+      this.cursorTop -= (this.box.height as number) - 1
+      if (this.cursorTop < 0) {
+        this.cursorTop = 0
+      }
+      this.box.scrollTo(0)
+      this.box.scrollTo(this.cursorTop)
     }
   }
 
@@ -221,7 +227,7 @@ export class Screen {
     const cursorLine = lines[this.cursorTop]
     if (this.cursorLeft <= cursorLine.length) {
       const text = stripAnsi(lines.join(''))
-      let match = link.exec(text)
+      let match = regexMarkdownLink.exec(text)
       while (match) {
         const start = match.index
         const end = start + match[0].length
@@ -230,7 +236,7 @@ export class Screen {
           await this.follow(match[2])
           break
         }
-        match = link.exec(text)
+        match = regexMarkdownLink.exec(text)
       }
     }
   }
@@ -243,7 +249,9 @@ export class Screen {
     this.screen.title = title
     this.box = blessed.box(
       Object.assign({}, boxOptions, {
-        content: md.replace(link, `{underline}${'$&'}{/underline}`),
+        content: md
+          .replace(regexMarkdownLink, `{underline}${'$&'}{/underline}`)
+          .replace(regexMarkdownHeading, `{bold}${'$&'}{/bold}`),
       }),
     )
     this.screen.append(this.box)

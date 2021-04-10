@@ -21,6 +21,6 @@ describe('validateUrl', () => {
   it('returns false for an invalid url', () => {
     expect(validateUrl('')).toBe(false)
     expect(validateUrl('hello world')).toBe(false)
-    expect(validateUrl('http:meow')).toBe(false)
+    expect(validateUrl('http//meow')).toBe(false)
   })
 })
