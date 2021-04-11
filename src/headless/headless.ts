@@ -47,12 +47,12 @@ export class Headless {
   }
 
   async reload(): Promise<void> {
-    await this.page.reload()
+    await this.page.goto(this.history[this.history.length - 1])
   }
 
-  async evaluate(): Promise<PageInfo> {
+  async evaluate(reloaded = false): Promise<PageInfo> {
     const currentUrl = this.history[this.history.length - 1]
-    if (this.useCache && this.cache.has(currentUrl)) {
+    if (this.useCache && this.cache.has(currentUrl) && !reloaded) {
       return this.cache.get(currentUrl) as PageInfo
     }
 

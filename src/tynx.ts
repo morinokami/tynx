@@ -24,7 +24,7 @@ export const start = async (url: string, useCache: boolean): Promise<void> => {
     screen.clear()
     screen.setTitle(loadingMsg)
     await browser.reload()
-    const page = await browser.evaluate()
+    const page = await browser.evaluate(true)
     await render(page)
   }
   const goFoward = async (): Promise<void> => {
