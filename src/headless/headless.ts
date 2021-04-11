@@ -1,11 +1,11 @@
 import puppeteer, { Browser, Page } from 'puppeteer'
 
-export type RenderResult = {
+export type PageInfo = {
   title: string
-  content: string
+  html: string
 }
 
-export class Renderer {
+export class Headless {
   private browser: Browser
   private page: Page
   private history: string[]
@@ -18,7 +18,7 @@ export class Renderer {
     this.forward = []
   }
 
-  static async init(): Promise<Renderer> {
+  static async init(): Promise<Headless> {
     const browser = await puppeteer.launch()
     const page = await browser.newPage()
     await page.setRequestInterception(true)
@@ -31,7 +31,7 @@ export class Renderer {
         request.continue()
       }
     })
-    return new Renderer(browser, page)
+    return new Headless(browser, page)
   }
 
   async goto(url: string): Promise<void> {
@@ -44,10 +44,10 @@ export class Renderer {
     await this.page.reload()
   }
 
-  async evaluate(): Promise<RenderResult> {
+  async evaluate(): Promise<PageInfo> {
     const title = await this.page.title()
-    const content = await this.page.evaluate(() => document.body.innerHTML)
-    return { title, content }
+    const html = await this.page.evaluate(() => document.body.innerHTML)
+    return { title, html }
   }
 
   async close(): Promise<void> {
