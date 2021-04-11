@@ -22,7 +22,7 @@ export class Screen {
 
   /**
    * @param title Initial title.
-   * @param md Initial markdown content.
+   * @param md Initial Markdown content.
    * @param follow Called when user enters url or clicks link.
    * @param reload Called when user presses `r`.
    * @param goForward Called when user presses `[`.
