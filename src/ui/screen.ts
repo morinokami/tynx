@@ -5,23 +5,30 @@ import { boxOptions, cursorOptions, inputFieldOptions } from './blessedOptions'
 const regexMarkdownHeading = /#{1,6} .+$/gm
 const regexMarkdownLink = /\[([^[]+)\]\(([^)]+)\)/gm
 
-export type CursorPosition = {
-  top: number
-  left: number
-}
-
+/**
+ * The Screen class renders markdown contents to the screen.
+ */
 export class Screen {
   private screen: blessed.Widgets.Screen
   private box: blessed.Widgets.BoxElement
   private cursorTop: number
   private cursorLeft: number
   private cursor: blessed.Widgets.BoxElement
-  private follow: (url: string) => Promise<void>
-  private reload: () => Promise<void>
-  private goForward: () => Promise<void>
-  private goBack: () => Promise<void>
-  private exit: () => Promise<void>
+  private cbFollow: (url: string) => Promise<void>
+  private cbReload: () => Promise<void>
+  private cbGoForward: () => Promise<void>
+  private cbGoBack: () => Promise<void>
+  private cbExit: () => Promise<void>
 
+  /**
+   * @param title Initial title.
+   * @param md Initial markdown content.
+   * @param follow Called when user enters url or clicks link.
+   * @param reload Called when user presses `r`.
+   * @param goForward Called when user presses `[`.
+   * @param goBack Called when user presses `]`.
+   * @param exit Called when user presses `e`.
+   */
   constructor(
     title: string,
     md: string,
@@ -54,11 +61,11 @@ export class Screen {
         left: this.cursorLeft,
       }),
     )
-    this.follow = follow
-    this.reload = reload
-    this.goForward = goForward
-    this.goBack = goBack
-    this.exit = exit
+    this.cbFollow = follow
+    this.cbReload = reload
+    this.cbGoForward = goForward
+    this.cbGoBack = goBack
+    this.cbExit = exit
 
     this.bindListeners()
   }
@@ -87,21 +94,21 @@ export class Screen {
         if (key.full === 'f') {
           // Follow link
           await this.followLinkUnderCursor()
-        } else if (key.full === 'r') {
-          // Reload
-          await this.reload()
-        } else if (key.full === '[') {
-          // Go back
-          await this.goBack()
-        } else if (key.full === ']') {
-          // Go forward
-          await this.goForward()
         } else if (key.full === 'e') {
           // Follow input
           await this.followInput()
+        } else if (key.full === 'r') {
+          // Reload
+          await this.cbReload()
+        } else if (key.full === ']') {
+          // Go forward
+          await this.cbGoForward()
+        } else if (key.full === '[') {
+          // Go back
+          await this.cbGoBack()
         } else if (key.full === 'q') {
           // Quit
-          this.exit()
+          this.cbExit()
         } else {
           // Update cursor position
           this.cursor.detach()
@@ -203,14 +210,14 @@ export class Screen {
     input.readInput(async (err, value) => {
       input.destroy()
       if (!err && value?.length) {
-        await this.follow(value as string)
+        await this.cbFollow(value as string)
       }
       this.screen.render()
     })
   }
 
   private async followLinkUnderCursor(): Promise<void> {
-    // check if the chunk under cursor is a markdown link
+    // check if the chunk under the cursor is a markdown link
     const lines = this.box.getScreenLines()
     if (this.cursorTop >= lines.length) {
       return
@@ -226,7 +233,7 @@ export class Screen {
         const end = start + match[0].length
         if (start <= cursorIndex && cursorIndex < end) {
           // jump to the link destination
-          await this.follow(match[2])
+          await this.cbFollow(match[2])
           break
         }
         match = regexMarkdownLink.exec(text)
@@ -234,10 +241,16 @@ export class Screen {
     }
   }
 
+  /**
+   * Initializes the screen.
+   */
   run(): void {
     this.screen.render()
   }
 
+  /**
+   * Clears the screen.
+   */
   clear(): void {
     this.cursor.detach()
     this.box.content = ''
@@ -245,8 +258,14 @@ export class Screen {
     this.screen.render()
   }
 
-  update(title: string, md: string, cursorPosition?: CursorPosition): void {
+  /**
+   * Updates the contents of the screen.
+   * @param title Screen's title.
+   * @param md Markdown content.
+   */
+  update(title: string, md: string): void {
     this.screen.title = title
+
     this.box = blessed.box(
       Object.assign({}, boxOptions, {
         content: md
@@ -255,13 +274,9 @@ export class Screen {
       }),
     )
     this.screen.append(this.box)
-    if (cursorPosition) {
-      this.cursorTop = cursorPosition.top
-      this.cursorLeft = cursorPosition.left
-    } else {
-      this.cursorTop = 0
-      this.cursorLeft = 0
-    }
+
+    this.cursorTop = 0
+    this.cursorLeft = 0
     this.cursor = blessed.box(
       Object.assign({}, cursorOptions, {
         parent: this.box,
@@ -269,10 +284,15 @@ export class Screen {
         left: this.cursorLeft,
       }),
     )
+
     this.bindListeners()
     this.screen.render()
   }
 
+  /**
+   * Sets the title of the screen.
+   * @param title Screen's title.
+   */
   setTitle(title: string): void {
     this.screen.title = title
   }
