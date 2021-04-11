@@ -4,8 +4,8 @@ import { htmlToMarkdown, validateUrl } from './lib'
 
 const loadingMsg = 'Loading...'
 
-export const start = async (url: string): Promise<void> => {
-  const browser = await Headless.init()
+export const start = async (url: string, useCache: boolean): Promise<void> => {
+  const browser = await Headless.init(useCache)
 
   const follow = async (url: string): Promise<void> => {
     if (url.startsWith('/')) {

@@ -10,15 +10,19 @@ export class Headless {
   private page: Page
   private history: string[]
   private forward: string[]
+  private readonly useCache: boolean
+  private cache: Map<string, PageInfo>
 
-  constructor(browser: Browser, page: Page) {
+  constructor(browser: Browser, page: Page, useCache: boolean) {
     this.browser = browser
     this.page = page
     this.history = []
     this.forward = []
+    this.useCache = useCache
+    this.cache = new Map()
   }
 
-  static async init(): Promise<Headless> {
+  static async init(useCache: boolean): Promise<Headless> {
     const browser = await puppeteer.launch()
     const page = await browser.newPage()
     await page.setRequestInterception(true)
@@ -31,13 +35,15 @@ export class Headless {
         request.continue()
       }
     })
-    return new Headless(browser, page)
+    return new Headless(browser, page, useCache)
   }
 
   async goto(url: string): Promise<void> {
     this.history.push(url)
     this.forward = []
-    await this.page.goto(url)
+    if (!this.useCache || !this.cache.has(url)) {
+      await this.page.goto(url)
+    }
   }
 
   async reload(): Promise<void> {
@@ -45,8 +51,16 @@ export class Headless {
   }
 
   async evaluate(): Promise<PageInfo> {
+    const currentUrl = this.history[this.history.length - 1]
+    if (this.useCache && this.cache.has(currentUrl)) {
+      return this.cache.get(currentUrl) as PageInfo
+    }
+
     const title = await this.page.title()
     const html = await this.page.evaluate(() => document.body.innerHTML)
+    if (this.useCache) {
+      this.cache.set(currentUrl, { title, html })
+    }
     return { title, html }
   }
 
@@ -56,18 +70,22 @@ export class Headless {
 
   async goForward(): Promise<void> {
     this.history.push(this.forward.pop() as string)
-    await Promise.all([
-      this.page.waitForNavigation({ waitUntil: ['load', 'networkidle2'] }),
-      this.page.goForward(),
-    ])
+    if (!this.useCache) {
+      await Promise.all([
+        this.page.waitForNavigation({ waitUntil: ['load', 'networkidle2'] }),
+        this.page.goForward(),
+      ])
+    }
   }
 
   async goBack(): Promise<void> {
     this.forward.push(this.history.pop() as string)
-    await Promise.all([
-      this.page.waitForNavigation({ waitUntil: ['load', 'networkidle2'] }),
-      this.page.goBack(),
-    ])
+    if (!this.useCache) {
+      await Promise.all([
+        this.page.waitForNavigation({ waitUntil: ['load', 'networkidle2'] }),
+        this.page.goBack(),
+      ])
+    }
   }
 
   canGoForward(): boolean {
