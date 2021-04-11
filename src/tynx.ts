@@ -1,4 +1,4 @@
-import { Headless } from './headless'
+import { Headless, PageInfo } from './headless'
 import { Screen } from './ui'
 import { htmlToMarkdown, validateUrl } from './lib'
 
@@ -17,20 +17,23 @@ export const start = async (url: string): Promise<void> => {
       screen.setTitle(loadingMsg)
       await browser.goto(url)
     }
-    await render()
+    const page = await browser.evaluate()
+    await render(page)
   }
   const reload = async (): Promise<void> => {
     screen.clear()
     screen.setTitle(loadingMsg)
     await browser.reload()
-    await render()
+    const page = await browser.evaluate()
+    await render(page)
   }
   const goFoward = async (): Promise<void> => {
     if (browser.canGoForward()) {
       screen.clear()
       screen.setTitle(loadingMsg)
       await browser.goForward()
-      await render()
+      const page = await browser.evaluate()
+      await render(page)
     }
   }
   const goBack = async (): Promise<void> => {
@@ -38,7 +41,8 @@ export const start = async (url: string): Promise<void> => {
       screen.clear()
       screen.setTitle(loadingMsg)
       await browser.goBack()
-      await render()
+      const page = await browser.evaluate()
+      await render(page)
     }
   }
   const cleanUp = async (): Promise<void> => {
@@ -46,10 +50,9 @@ export const start = async (url: string): Promise<void> => {
     await browser.close()
     process.exit(0)
   }
-  const render = async (): Promise<void> => {
-    const { title, html } = await browser.evaluate()
-    const md = htmlToMarkdown(html)
-    screen.update(title, md)
+  const render = async (page: PageInfo): Promise<void> => {
+    const md = htmlToMarkdown(page.html)
+    screen.update(page.title, md)
   }
 
   await browser.goto(url)
