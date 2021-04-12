@@ -97,6 +97,6 @@ export class Headless {
   }
 
   url(): URL {
-    return new URL(this.page.url())
+    return new URL(this.history[this.history.length - 1])
   }
 }
