@@ -7,42 +7,36 @@ const loadingMsg = 'Loading...'
 export const start = async (url: string, useCache: boolean): Promise<void> => {
   const browser = await Headless.init(useCache)
 
+  const loadHelper = async (
+    main: () => Promise<void>,
+    reload = false,
+  ): Promise<void> => {
+    screen.clear()
+    screen.setTitle(loadingMsg)
+    await main()
+    const page = await browser.evaluate(reload)
+    await render(page)
+  }
   const follow = async (url: string): Promise<void> => {
     if (url.startsWith('/')) {
       const { origin } = browser.url()
       url = `${origin}${url}`
     }
     if (validateUrl(url)) {
-      screen.clear()
-      screen.setTitle(loadingMsg)
-      await browser.goto(url)
+      loadHelper(async () => await browser.goto(url))
     }
-    const page = await browser.evaluate()
-    await render(page)
   }
   const reload = async (): Promise<void> => {
-    screen.clear()
-    screen.setTitle(loadingMsg)
-    await browser.reload()
-    const page = await browser.evaluate(true)
-    await render(page)
+    loadHelper(async () => await browser.reload(), true)
   }
   const goFoward = async (): Promise<void> => {
     if (browser.canGoForward()) {
-      screen.clear()
-      screen.setTitle(loadingMsg)
-      await browser.goForward()
-      const page = await browser.evaluate()
-      await render(page)
+      loadHelper(async () => await browser.goForward())
     }
   }
   const goBack = async (): Promise<void> => {
     if (browser.canGoBack()) {
-      screen.clear()
-      screen.setTitle(loadingMsg)
-      await browser.goBack()
-      const page = await browser.evaluate()
-      await render(page)
+      loadHelper(async () => await browser.goBack())
     }
   }
   const cleanUp = async (): Promise<void> => {
