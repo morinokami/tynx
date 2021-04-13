@@ -38,6 +38,10 @@ export class Headless {
     return new Headless(browser, page, useCache)
   }
 
+  /**
+   * Navigates to the page referenced by the specified url.
+   * @param url URL to navigate to.
+   */
   async goto(url: string): Promise<void> {
     this.history.push(url)
     this.forward = []
@@ -46,10 +50,21 @@ export class Headless {
     }
   }
 
+  /**
+   * Reloads the current page.
+   */
   async reload(): Promise<void> {
     await this.page.goto(this.history[this.history.length - 1])
   }
 
+  /**
+   * Evaluates the current page and returns the title and html as a `Promise<PageInfo>`.
+   * If the `useCache` options is set to `true` when the browser is initialized,
+   * it stores the result as a cache and returns it.
+   * @param reloaded Page was reloaded right before it's called.
+   * If it's set to `true`, cache will be updated. Defaults to `false`.
+   * @returns title and html as `Promise<PageInfo>`.
+   */
   async evaluate(reloaded = false): Promise<PageInfo> {
     const currentUrl = this.history[this.history.length - 1]
     if (this.useCache && this.cache.has(currentUrl) && !reloaded) {
@@ -64,10 +79,16 @@ export class Headless {
     return { title, html }
   }
 
+  /**
+   * Closes the browser.
+   */
   async close(): Promise<void> {
     await this.browser.close()
   }
 
+  /**
+   * Navigates to the next page in history.
+   */
   async goForward(): Promise<void> {
     this.history.push(this.forward.pop() as string)
     if (!this.useCache) {
@@ -78,6 +99,9 @@ export class Headless {
     }
   }
 
+  /**
+   * Navigates to the previous page in history.
+   */
   async goBack(): Promise<void> {
     this.forward.push(this.history.pop() as string)
     if (!this.useCache) {
@@ -88,14 +112,26 @@ export class Headless {
     }
   }
 
+  /**
+   * Checks if the browser can navigate to the next page in history.
+   * @returns `true` if browser can navigate to next page, otherwise `false`.
+   */
   canGoForward(): boolean {
     return this.forward.length > 0
   }
 
+  /**
+   * Checks if the browser can navigate to the previous page in history.
+   * @returns `true` if browser can navigate to previous page, otherwise `false`.
+   */
   canGoBack(): boolean {
     return this.history.length > 1
   }
 
+  /**
+   * Returns the `URL` object referencing the current page.
+   * @returns `URL` object.
+   */
   url(): URL {
     return new URL(this.history[this.history.length - 1])
   }
