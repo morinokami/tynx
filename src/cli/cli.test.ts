@@ -3,7 +3,7 @@ import { CLI } from './cli'
 jest.mock('meow', () =>
   jest.fn(() => ({
     input: ['https://example.com'],
-    flags: { cache: true },
+    flags: { noCache: true },
   })),
 )
 
@@ -13,8 +13,8 @@ describe('CLI', () => {
     expect(cli.url).toBe('https://example.com')
   })
 
-  it('accepts cache flag', () => {
+  it('accepts noCache flag', () => {
     const cli = new CLI()
-    expect(cli.useCache).toBe(true)
+    expect(cli.useCache).toBe(false)
   })
 })

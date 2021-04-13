@@ -5,7 +5,7 @@ const usage = `
 	  $ tynx <url>
 
   Options
-    --cache, -c Cache contents
+    --noCache Do not cache contents
 `
 
 export class CLI {
@@ -24,13 +24,12 @@ export class CLI {
   constructor() {
     this.cli = meow(usage, {
       flags: {
-        cache: {
+        noCache: {
           type: 'boolean',
-          alias: 'c',
         },
       },
     })
     this._url = this.cli.input[0]
-    this._useCache = this.cli.flags.cache as boolean
+    this._useCache = !(this.cli.flags.noCache as boolean)
   }
 }
