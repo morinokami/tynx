@@ -133,6 +133,85 @@ export class Headless {
    * @returns `URL` object.
    */
   url(): URL {
-    return new URL(this.history[this.history.length - 1])
+    return new URL(this.rawUrl())
+  }
+
+  /**
+   * Return the url string corresponding to the current page.
+   * @returns url of current page.
+   */
+  rawUrl(): string {
+    return this.history[this.history.length - 1]
+  }
+
+  /**
+   * Appends the spceifed url to history array.
+   * @param url Url to append to history.
+   */
+  appendToHistory(url: string): void {
+    this.history.push(url)
+  }
+
+  /**
+   * Appends the specified url to forward array.
+   * @param url Url to append to forward.
+   */
+  appendToForwardHistory(url: string): void {
+    this.forward.push(url)
+    console.log(this.forward)
+  }
+
+  /**
+   * Removes the last element from the history array and returns it.
+   * @returns Last element of history.
+   */
+  popHistory(): string | undefined {
+    return this.history.pop()
+  }
+
+  /**
+   * Removes the last element from the forward array and returns it.
+   * @returns Last element of forward.
+   */
+  popForward(): string | undefined {
+    return this.forward.pop()
+  }
+
+  /**
+   * Clears the forward array.
+   */
+  clearForward(): void {
+    this.forward = []
+  }
+
+  /**
+   * Adds a `PageInfo` object to the cache.
+   * @param key Key of cache.
+   * @param pageInfo Title and markdown content of page.
+   */
+  addToCache(key: string, pageInfo: PageInfo): void {
+    this.cache.set(key, pageInfo)
+  }
+
+  /**
+   * Returns the url of the next page in history.
+   * @returns Url of next page if exists, otherwise empty string.
+   */
+  peekForward(): string {
+    if (this.forward.length > 0) {
+      return this.forward[this.forward.length - 1]
+    }
+    return ''
+  }
+
+  /**
+   * Returns the url of the previous page in history.
+   * @returns Url of previous page if exists, otherwise empty string.
+   */
+  peekBack(): string {
+    if (this.history.length > 1) {
+      return this.history[this.history.length - 2]
+    }
+    return ''
   }
 }

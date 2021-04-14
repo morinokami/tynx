@@ -4,6 +4,9 @@ import { htmlToMarkdown, validateUrl } from './lib'
 
 const loadingMsg = 'Loading...'
 
+const help = 'file:help'
+const helpContent = { title: 'Help', html: 'this is a help message' }
+
 export const start = async (url: string, useCache: boolean): Promise<void> => {
   const browser = await Headless.init(useCache)
 
@@ -27,16 +30,31 @@ export const start = async (url: string, useCache: boolean): Promise<void> => {
     }
   }
   const reload = async (): Promise<void> => {
+    if (browser.rawUrl() === help) {
+      return
+    }
     loadHelper(async () => await browser.reload(), true)
   }
-  const goFoward = async (): Promise<void> => {
+  const goForward = async (): Promise<void> => {
     if (browser.canGoForward()) {
-      loadHelper(async () => await browser.goForward())
+      if (browser.peekForward() === help) {
+        browser.appendToHistory(help)
+        browser.popForward()
+        screen.update(helpContent.title, helpContent.html)
+      } else {
+        loadHelper(async () => await browser.goForward())
+      }
     }
   }
   const goBack = async (): Promise<void> => {
     if (browser.canGoBack()) {
-      loadHelper(async () => await browser.goBack())
+      if (browser.peekBack() === help) {
+        browser.appendToForwardHistory(help)
+        browser.popHistory()
+        screen.update(helpContent.title, helpContent.html)
+      } else {
+        loadHelper(async () => await browser.goBack())
+      }
     }
   }
   const cleanUp = async (): Promise<void> => {
@@ -48,6 +66,17 @@ export const start = async (url: string, useCache: boolean): Promise<void> => {
     const md = htmlToMarkdown(page.html)
     screen.update(page.title, md)
   }
+  const showHelp = async (): Promise<void> => {
+    if (browser.rawUrl() === help) {
+      return
+    }
+    loadHelper(async () => {
+      browser.addToCache(help, helpContent)
+      browser.appendToHistory(help)
+      browser.clearForward()
+      screen.update(helpContent.title, helpContent.html)
+    })
+  }
 
   await browser.goto(url)
   const { title, html } = await browser.evaluate()
@@ -57,9 +86,10 @@ export const start = async (url: string, useCache: boolean): Promise<void> => {
     md,
     follow,
     reload,
-    goFoward,
+    goForward,
     goBack,
     cleanUp,
+    showHelp,
   )
 
   screen.run()
