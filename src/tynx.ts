@@ -1,10 +1,17 @@
+import url from 'url'
+
 import { Headless, PageInfo } from './headless'
 import { Screen } from './ui'
 import { htmlToMarkdown, validateUrl } from './lib'
 
+const help = `${__dirname}/static/help.html`
+
 const loadingMsg = 'Loading...'
 
-export const start = async (url: string, useCache: boolean): Promise<void> => {
+export const start = async (
+  initialUrl: string,
+  useCache: boolean,
+): Promise<void> => {
   const browser = await Headless.init(useCache)
 
   const loadHelper = async (
@@ -29,7 +36,7 @@ export const start = async (url: string, useCache: boolean): Promise<void> => {
   const reload = async (): Promise<void> => {
     loadHelper(async () => await browser.reload(), true)
   }
-  const goFoward = async (): Promise<void> => {
+  const goForward = async (): Promise<void> => {
     if (browser.canGoForward()) {
       loadHelper(async () => await browser.goForward())
     }
@@ -48,8 +55,11 @@ export const start = async (url: string, useCache: boolean): Promise<void> => {
     const md = htmlToMarkdown(page.html)
     screen.update(page.title, md)
   }
+  const showHelp = async (): Promise<void> => {
+    loadHelper(async () => await browser.goto(url.pathToFileURL(help).href))
+  }
 
-  await browser.goto(url)
+  await browser.goto(initialUrl)
   const { title, html } = await browser.evaluate()
   const md = htmlToMarkdown(html)
   const screen = new Screen(
@@ -57,9 +67,10 @@ export const start = async (url: string, useCache: boolean): Promise<void> => {
     md,
     follow,
     reload,
-    goFoward,
+    goForward,
     goBack,
     cleanUp,
+    showHelp,
   )
 
   screen.run()
