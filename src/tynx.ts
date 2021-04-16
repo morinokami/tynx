@@ -1,13 +1,17 @@
+import url from 'url'
+
 import { Headless, PageInfo } from './headless'
 import { Screen } from './ui'
 import { htmlToMarkdown, validateUrl } from './lib'
 
+const help = `${__dirname}/static/help.html`
+
 const loadingMsg = 'Loading...'
 
-const help = 'file:help'
-const helpContent = { title: 'Help', html: 'this is a help message' }
-
-export const start = async (url: string, useCache: boolean): Promise<void> => {
+export const start = async (
+  initialUrl: string,
+  useCache: boolean,
+): Promise<void> => {
   const browser = await Headless.init(useCache)
 
   const loadHelper = async (
@@ -30,31 +34,16 @@ export const start = async (url: string, useCache: boolean): Promise<void> => {
     }
   }
   const reload = async (): Promise<void> => {
-    if (browser.rawUrl() === help) {
-      return
-    }
     loadHelper(async () => await browser.reload(), true)
   }
   const goForward = async (): Promise<void> => {
     if (browser.canGoForward()) {
-      if (browser.peekForward() === help) {
-        browser.appendToHistory(help)
-        browser.popForward()
-        screen.update(helpContent.title, helpContent.html)
-      } else {
-        loadHelper(async () => await browser.goForward())
-      }
+      loadHelper(async () => await browser.goForward())
     }
   }
   const goBack = async (): Promise<void> => {
     if (browser.canGoBack()) {
-      if (browser.peekBack() === help) {
-        browser.appendToForwardHistory(help)
-        browser.popHistory()
-        screen.update(helpContent.title, helpContent.html)
-      } else {
-        loadHelper(async () => await browser.goBack())
-      }
+      loadHelper(async () => await browser.goBack())
     }
   }
   const cleanUp = async (): Promise<void> => {
@@ -67,18 +56,10 @@ export const start = async (url: string, useCache: boolean): Promise<void> => {
     screen.update(page.title, md)
   }
   const showHelp = async (): Promise<void> => {
-    if (browser.rawUrl() === help) {
-      return
-    }
-    loadHelper(async () => {
-      browser.addToCache(help, helpContent)
-      browser.appendToHistory(help)
-      browser.clearForward()
-      screen.update(helpContent.title, helpContent.html)
-    })
+    loadHelper(async () => await browser.goto(url.pathToFileURL(help).href))
   }
 
-  await browser.goto(url)
+  await browser.goto(initialUrl)
   const { title, html } = await browser.evaluate()
   const md = htmlToMarkdown(html)
   const screen = new Screen(
