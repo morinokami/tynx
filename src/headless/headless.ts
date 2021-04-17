@@ -1,5 +1,10 @@
 import puppeteer, { Browser, Page } from 'puppeteer'
 
+export type HistoryType = {
+  title: string
+  url: string
+}
+
 export type PageInfo = {
   title: string
   html: string
@@ -134,5 +139,20 @@ export class Headless {
    */
   url(): URL {
     return new URL(this.history[this.history.length - 1])
+  }
+
+  /**
+   * Returns an array of `HistoryType`, which consists of a title and a url.
+   * @returns `HistoryType` array.
+   */
+  getHistory(): HistoryType[] {
+    const urls = this.history.concat(this.forward.reverse())
+    return urls.map((url) => {
+      const title = this.cache.get(url)?.title as string
+      return {
+        url,
+        title,
+      }
+    })
   }
 }
