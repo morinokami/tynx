@@ -27,9 +27,10 @@ export class Headless {
     this.cache = new Map()
   }
 
-  static async init(useCache: boolean): Promise<Headless> {
+  static async init(useCache: boolean, version: string): Promise<Headless> {
     const browser = await puppeteer.launch()
     const page = await browser.newPage()
+    page.setUserAgent(`tynx/${version}`)
     await page.setRequestInterception(true)
     page.on('request', (request) => {
       if (

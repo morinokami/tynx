@@ -11,7 +11,7 @@ const main = async (): Promise<void> => {
   } else if (!validateUrl(cli.url)) {
     console.error(`Not a valid URL: ${cli.url}`)
   } else {
-    tynx.start(cli.url, cli.useCache)
+    tynx.start(cli.url, cli.useCache, cli.version)
   }
 }
 

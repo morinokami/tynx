@@ -15,8 +15,9 @@ const LOADING = 'Loading...'
 export const start = async (
   initialUrl: string,
   useCache: boolean,
+  version: string,
 ): Promise<void> => {
-  const browser = await Headless.init(useCache)
+  const browser = await Headless.init(useCache, version)
 
   const loadHelper = async (
     main: () => Promise<void>,
