@@ -153,10 +153,18 @@ export class Headless {
 
   /**
    * Returns the `URL` object referencing the current page.
-   * @returns `URL` object.
+   * @returns `URL` object of current page.
    */
   url(): URL {
-    return new URL(this.history[this.history.length - 1])
+    return new URL(this.rawUrl())
+  }
+
+  /**
+   * Return the url string corresponding to the current page.
+   * @returns url of current page.
+   */
+  rawUrl(): string {
+    return this.history[this.history.length - 1]
   }
 
   /**

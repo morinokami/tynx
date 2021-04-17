@@ -1,4 +1,5 @@
 import TurndownService from 'turndown'
+import { HistoryType } from '../headless'
 
 const turndownOptions: TurndownService.Options = {
   headingStyle: 'atx',
@@ -31,4 +32,15 @@ export const validateUrl = (urlStr: string): boolean => {
   } catch (err) {
     return false
   }
+}
+
+/**
+ * Returns a list of HTML links as a string.
+ * @param history Array of HistoryType.
+ * @returns HTML list of links.
+ */
+export const createHistoryList = (history: HistoryType[]): string => {
+  return history
+    .map((h) => `<li><a href="${h.url}">${h.title}</a></li>`)
+    .join('')
 }
