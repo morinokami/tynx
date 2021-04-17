@@ -245,7 +245,7 @@ export class Screen {
     }
     const before = lines.slice(0, this.cursorTop)
     const cursorIndex = stripAnsi(before.join('')).length + this.cursorLeft
-    const cursorLine = lines[this.cursorTop]
+    const cursorLine = stripAnsi(lines[this.cursorTop])
     if (this.cursorLeft <= cursorLine.length) {
       const text = stripAnsi(lines.join(''))
       let match = regexMarkdownLink.exec(text)
