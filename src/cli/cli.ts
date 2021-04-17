@@ -1,13 +1,5 @@
 import meow from 'meow'
 
-const usage = `
-	Usage
-	  $ tynx <url>
-
-  Options
-    --noCache Do not cache contents
-`
-
 export class CLI {
   private cli: meow.Result<meow.AnyFlags>
   private _url: string
@@ -26,7 +18,7 @@ export class CLI {
     return this._version
   }
 
-  constructor() {
+  constructor(usage = '') {
     this.cli = meow(usage, {
       flags: {
         noCache: {
