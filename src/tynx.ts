@@ -22,11 +22,13 @@ export const start = async (
     main: () => Promise<void>,
     reload = false,
   ): Promise<void> => {
+    screen.isLoading = true
     screen.clear()
     screen.setTitle(LOADING)
     await main()
     const page = await browser.evaluate(reload)
     await render(page)
+    screen.isLoading = false
   }
   const follow = async (url: string): Promise<void> => {
     if (url.startsWith('/')) {
@@ -54,10 +56,6 @@ export const start = async (
     screen.clear()
     await browser.close()
     process.exit(0)
-  }
-  const render = async (page: PageInfo): Promise<void> => {
-    const md = htmlToMarkdown(page.html)
-    screen.update(page.title, md)
   }
   const showHelp = async (): Promise<void> => {
     const helpUrl = url.pathToFileURL(HELP).href
@@ -89,6 +87,10 @@ export const start = async (
     loadHelper(
       async () => await browser.goto(url.pathToFileURL(newPath).href, false),
     )
+  }
+  const render = async (page: PageInfo): Promise<void> => {
+    const md = htmlToMarkdown(page.html)
+    screen.update(page.title, md)
   }
 
   await browser.goto(initialUrl)

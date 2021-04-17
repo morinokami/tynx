@@ -21,6 +21,7 @@ export class Screen {
   private cbExit: () => Promise<void>
   private cbShowHelp: () => Promise<void>
   private cbShowHistory: () => Promise<void>
+  isLoading: boolean
 
   /**
    * @param title Initial title.
@@ -76,6 +77,7 @@ export class Screen {
     this.cbShowHistory = showHistory
 
     this.bindListeners()
+    this.isLoading = false
   }
 
   private bindListeners(): void {
@@ -101,6 +103,9 @@ export class Screen {
         'C-b',
       ],
       async (_, key) => {
+        if (this.isLoading) {
+          return
+        }
         if (key.full === 'f') {
           // Follow link
           await this.followLinkUnderCursor()
