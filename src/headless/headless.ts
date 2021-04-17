@@ -47,9 +47,18 @@ export class Headless {
    * Navigates to the page referenced by the specified url.
    * @param url URL to navigate to.
    */
-  async goto(url: string): Promise<void> {
+  async goto(url: string, clearForward = true): Promise<void> {
+    if (
+      this.history.length > 0 &&
+      this.history[this.history.length - 1].startsWith('file')
+    ) {
+      this.history.pop()
+    }
+
     this.history.push(url)
-    this.forward = []
+    if (clearForward) {
+      this.forward = []
+    }
     if (!this.useCache || !this.cache.has(url)) {
       await this.page.goto(url)
     }
@@ -95,6 +104,9 @@ export class Headless {
    * Navigates to the next page in history.
    */
   async goForward(): Promise<void> {
+    if (this.history[this.history.length - 1].startsWith('file')) {
+      this.history.pop()
+    }
     this.history.push(this.forward.pop() as string)
     if (!this.useCache) {
       await Promise.all([
@@ -108,7 +120,10 @@ export class Headless {
    * Navigates to the previous page in history.
    */
   async goBack(): Promise<void> {
-    this.forward.push(this.history.pop() as string)
+    const url = this.history.pop() as string
+    if (!url.startsWith('file')) {
+      this.forward.push(url)
+    }
     if (!this.useCache) {
       await Promise.all([
         this.page.waitForNavigation({ waitUntil: ['load', 'networkidle2'] }),
@@ -122,7 +137,10 @@ export class Headless {
    * @returns `true` if browser can navigate to next page, otherwise `false`.
    */
   canGoForward(): boolean {
-    return this.forward.length > 0
+    return (
+      this.forward.length > 0 &&
+      !this.forward[this.forward.length - 1].startsWith('file')
+    )
   }
 
   /**

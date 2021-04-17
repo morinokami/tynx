@@ -1,4 +1,7 @@
+import { promises as fs } from 'fs'
 import url from 'url'
+
+import { file } from 'tmp-promise'
 
 import { Headless, PageInfo } from './headless'
 import { Screen } from './ui'
@@ -56,7 +59,40 @@ export const start = async (
     screen.update(page.title, md)
   }
   const showHelp = async (): Promise<void> => {
-    loadHelper(async () => await browser.goto(url.pathToFileURL(help).href))
+    loadHelper(
+      async () => await browser.goto(url.pathToFileURL(help).href, false),
+    )
+  }
+  const showHistory = async (): Promise<void> => {
+    // create a file in tmp
+    const { path } = await file()
+    const newPath = `${path}.html`
+    await fs.rename(path, newPath)
+    // write history to the file
+    const history = browser.getHistory()
+    await fs.writeFile(
+      newPath,
+      `
+        <!DOCTYPE html>
+        <html lang="en">
+          <head>
+            <meta charset="UTF-8" />
+            <title>History</title>
+          </head>
+          <body>
+            <ul>
+              ${history
+                .map((h) => `<li><a href="${h.url}">${h.title}</a></li>`)
+                .join('')}
+            </ul>
+          </body>
+        </html>
+      `,
+    )
+    // goto the file
+    loadHelper(
+      async () => await browser.goto(url.pathToFileURL(newPath).href, false),
+    )
   }
 
   await browser.goto(initialUrl)
@@ -71,6 +107,7 @@ export const start = async (
     goBack,
     cleanUp,
     showHelp,
+    showHistory,
   )
 
   screen.run()

@@ -20,6 +20,7 @@ export class Screen {
   private cbGoBack: () => Promise<void>
   private cbExit: () => Promise<void>
   private cbShowHelp: () => Promise<void>
+  private cbShowHistory: () => Promise<void>
 
   /**
    * @param title Initial title.
@@ -30,6 +31,7 @@ export class Screen {
    * @param goBack Called when user presses `]`.
    * @param exit Called when user presses `e`.
    * @param showHelp Called when user presses `?`.
+   * @param showHistory Called when user presses `H`.
    */
   constructor(
     title: string,
@@ -40,6 +42,7 @@ export class Screen {
     goBack: () => Promise<void>,
     exit: () => Promise<void>,
     showHelp: () => Promise<void>,
+    showHistory: () => Promise<void>,
   ) {
     this.screen = blessed.screen({
       smartCSR: true,
@@ -70,6 +73,7 @@ export class Screen {
     this.cbGoBack = goBack
     this.cbExit = exit
     this.cbShowHelp = showHelp
+    this.cbShowHistory = showHistory
 
     this.bindListeners()
   }
@@ -85,6 +89,7 @@ export class Screen {
         'q',
         '?',
         'h',
+        'S-h',
         'j',
         'k',
         'l',
@@ -117,6 +122,9 @@ export class Screen {
         } else if (key.full === '?') {
           // Show help
           this.cbShowHelp()
+        } else if (key.full === 'S-h') {
+          // Show history
+          this.cbShowHistory()
         } else {
           // Update cursor position
           this.cursor.detach()
