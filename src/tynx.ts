@@ -12,6 +12,13 @@ const HISTORY_TEMPLATE = `${__dirname}/static/history.html`
 const HISTORY_EXTENSION = '.history.html'
 const LOADING = 'Loading...'
 
+const isShowingLocalFile = (currentPageUrl: string): boolean => {
+  return (
+    currentPageUrl === url.pathToFileURL(HELP).href ||
+    currentPageUrl.endsWith(HISTORY_EXTENSION)
+  )
+}
+
 export const start = async (
   initialUrl: string,
   useCache: boolean,
@@ -59,15 +66,14 @@ export const start = async (
     process.exit(0)
   }
   const showHelp = async (): Promise<void> => {
-    const helpUrl = url.pathToFileURL(HELP).href
-    if (browser.rawUrl() === helpUrl) {
+    if (isShowingLocalFile(browser.rawUrl())) {
       return
     }
 
-    load(async () => await browser.goto(helpUrl, false))
+    load(async () => await browser.goto(url.pathToFileURL(HELP).href, false))
   }
   const showHistory = async (): Promise<void> => {
-    if (browser.rawUrl().endsWith(HISTORY_EXTENSION)) {
+    if (isShowingLocalFile(browser.rawUrl())) {
       return
     }
 
