@@ -1,24 +1,29 @@
 {
   "name": "tynx",
   "version": "0.0.1",
-  "description": "",
+  "description": "tynx is a text-based web reader written in TypeScript.",
   "author": "Shinya Fujino <shf0811@gmail.com>",
   "license": "MIT",
-  "keywords": [],
+  "keywords": [
+    "browser",
+    "terminal",
+    "console",
+    "markdown"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/morinokami/tynx.git"
   },
-  "main": "index.js",
+  "main": "dist/index.js",
   "bin": {
-    "tynx": "./dist/index.js"
+    "tynx": "dist/index.js"
   },
   "files": [
-    "./dist"
+    "dist"
   ],
   "scripts": {
     "tynx": "ts-node ./src/index.ts",
-    "build": "yarn clean && tsc -p .",
+    "build": "yarn clean && tsc -p . && cp -r ./src/static ./dist",
     "clean": "rm -rf ./dist",
     "lint": "eslint src/**/*.ts",
     "format": "prettier --write 'src/**/*.{js,ts}'",
