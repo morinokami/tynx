@@ -44,6 +44,15 @@ export class Headless {
     return new Headless(browser, page, useCache)
   }
 
+  async waitForNavigation(
+    promise: Promise<puppeteer.HTTPResponse | null>,
+  ): Promise<void> {
+    await Promise.all([
+      this.page.waitForNavigation({ waitUntil: ['load', 'networkidle0'] }),
+      promise,
+    ])
+  }
+
   /**
    * Navigates to the page referenced by the specified url.
    * @param url URL to navigate to.
@@ -61,7 +70,7 @@ export class Headless {
       this.forward = []
     }
     if (!this.useCache || !this.cache.has(url)) {
-      await this.page.goto(url)
+      await this.waitForNavigation(this.page.goto(url))
     }
   }
 
@@ -69,7 +78,9 @@ export class Headless {
    * Reloads the current page.
    */
   async reload(): Promise<void> {
-    await this.page.goto(this.history[this.history.length - 1])
+    await this.waitForNavigation(
+      this.page.goto(this.history[this.history.length - 1]),
+    )
   }
 
   /**
@@ -110,10 +121,7 @@ export class Headless {
     }
     this.history.push(this.forward.pop() as string)
     if (!this.useCache) {
-      await Promise.all([
-        this.page.waitForNavigation({ waitUntil: ['load', 'networkidle2'] }),
-        this.page.goForward(),
-      ])
+      await this.waitForNavigation(this.page.goForward())
     }
   }
 
@@ -126,10 +134,7 @@ export class Headless {
       this.forward.push(url)
     }
     if (!this.useCache) {
-      await Promise.all([
-        this.page.waitForNavigation({ waitUntil: ['load', 'networkidle2'] }),
-        this.page.goBack(),
-      ])
+      await this.waitForNavigation(this.page.goBack())
     }
   }
 
