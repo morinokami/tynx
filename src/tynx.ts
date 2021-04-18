@@ -19,7 +19,7 @@ export const start = async (
 ): Promise<void> => {
   const browser = await Headless.init(useCache, version)
 
-  const loadHelper = async (
+  const load = async (
     main: () => Promise<void>,
     reload = false,
   ): Promise<void> => {
@@ -37,20 +37,20 @@ export const start = async (
       url = `${origin}${url}`
     }
     if (validateUrl(url)) {
-      loadHelper(async () => await browser.goto(url))
+      load(async () => await browser.goto(url))
     }
   }
   const reload = async (): Promise<void> => {
-    loadHelper(async () => await browser.reload(), true)
+    load(async () => await browser.reload(), true)
   }
   const goForward = async (): Promise<void> => {
     if (browser.canGoForward()) {
-      loadHelper(async () => await browser.goForward())
+      load(async () => await browser.goForward())
     }
   }
   const goBack = async (): Promise<void> => {
     if (browser.canGoBack()) {
-      loadHelper(async () => await browser.goBack())
+      load(async () => await browser.goBack())
     }
   }
   const cleanUp = async (): Promise<void> => {
@@ -64,7 +64,7 @@ export const start = async (
       return
     }
 
-    loadHelper(async () => await browser.goto(helpUrl, false))
+    load(async () => await browser.goto(helpUrl, false))
   }
   const showHistory = async (): Promise<void> => {
     if (browser.rawUrl().endsWith(HISTORY_EXTENSION)) {
@@ -85,9 +85,7 @@ export const start = async (
     )
 
     // goto the file
-    loadHelper(
-      async () => await browser.goto(url.pathToFileURL(newPath).href, false),
-    )
+    load(async () => await browser.goto(url.pathToFileURL(newPath).href, false))
   }
   const render = async (page: PageInfo): Promise<void> => {
     const md = htmlToMarkdown(page.html)
