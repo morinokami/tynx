@@ -23,13 +23,13 @@ export const start = async (
     main: () => Promise<void>,
     reload = false,
   ): Promise<void> => {
-    screen.isLoading = true
+    screen.setLoadingState(true)
     screen.clear()
     screen.setTitle(LOADING)
     await main()
     const page = await browser.evaluate(reload)
     await render(page)
-    screen.isLoading = false
+    screen.setLoadingState(false)
   }
   const follow = async (url: string): Promise<void> => {
     if (url.startsWith('/')) {

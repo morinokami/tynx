@@ -21,7 +21,7 @@ export class Screen {
   private cbExit: () => Promise<void>
   private cbShowHelp: () => Promise<void>
   private cbShowHistory: () => Promise<void>
-  isLoading: boolean
+  private isLoading: boolean
 
   /**
    * @param title Initial title.
@@ -316,5 +316,13 @@ export class Screen {
    */
   setTitle(title: string): void {
     this.screen.title = title
+  }
+
+  /**
+   * Sets the isLoading property.
+   * @param isLoading Represents whether content is being loaded or not.
+   */
+  setLoadingState(isLoading: boolean): void {
+    this.isLoading = isLoading
   }
 }
