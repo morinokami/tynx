@@ -1,6 +1,11 @@
 # tynx
 
-tynx is a simple web reader written in TypScript.
+tynx is a simple text-based web reader written in TypScript.
+
+* converts a web page to markdown text and renders it.
+* supports vim-like cursor movement.
+
+![demo](./resources/demo.gif)
 
 ## Installation
 
@@ -38,4 +43,4 @@ $ tynx https://example.com
 
 * Other commands
   * `q`: quit
-  * `?`: open this help page
+  * `?`: open help
