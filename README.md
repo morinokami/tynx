@@ -1,6 +1,6 @@
 # tynx
 
-tynx is a simple text-based web reader written in TypScript.
+tynx is a simple text-based web reader written in TypeScript.
 
 * converts a web page to markdown text and renders it.
 * supports vim-like cursor movement.
